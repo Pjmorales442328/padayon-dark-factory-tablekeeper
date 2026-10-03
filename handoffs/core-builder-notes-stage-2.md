@@ -125,7 +125,7 @@ Known inherited runner limitations: manifest has pre-existing mismatches; Stage 
 - [ ] 114. Exact --repo stage2 isolated harness command prints claimed stage: 2; expected extra stage3 failure recorded separately.
 - [ ] 115. Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
 - [ ] 116. Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability; never edit frozen stage-1.
-- [ ] 117. Before any new feature, each builder commits a short behavior-preserving restructuring pass on its exclusively owned copied stage-2 files; stage-1 tree remains byte-identical to frozen 344e085.
+- [x] 117. Before any new feature, each builder commits a short behavior-preserving restructuring pass on its exclusively owned copied stage-2 files; stage-1 tree remains byte-identical to frozen 344e085.
 - [ ] 118. Browser routes /, /signup, /login, /lookup return HTML, reachable directly by URL; API remains JSON and all other required screens reachable through UI.
 - [ ] 119. Browser supports searching, booking and managing reservations, including approved two-table combinations.
 - [ ] 120. If search A starts before B but completes later, grid, table labels and booking form remain B; stale responses never restore A.
@@ -206,3 +206,6 @@ Known inherited runner limitations: manifest has pre-existing mismatches; Stage 
 - [ ] 195. Run inherited stage1 behavioral checks against stage2, new stage2 API/UI checks and full supplied isolated harness without skipping/deselecting/editing supplied checks.
 - [ ] 196. Measure maintainability against frozen stage1 baseline (radon/lizard plus observed limits), record figures and unresolved duplication-tool limits.
 - [ ] 197. Final stage2 report includes exact accepted/final revisions,all seat contributions,harness claim/report path,every rejection/change,start/end/time,maintainability and open limitations.
+
+Baseline completed: 51ff2cba48f15d65ad9177fc84afbebbf18c8d34; supplied inherited Stage 1 suite 120/120 with zero failures/skips/deselections; full inherited independent suite 189 tests,187 passed,2 documented non-domain failures,0 errors/skips. Frozen stage-1 diff empty. Domain-only radon average 2.7551 ->2.7071,max9 unchanged; lizard average2.6824 ->2.6279,max9 unchanged; NLOC619 ->618; largest owned file loading.py133 lines. No Stage2 feature gate released; all addition items remain pending.
+
