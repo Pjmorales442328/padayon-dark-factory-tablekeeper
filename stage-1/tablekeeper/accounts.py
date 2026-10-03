@@ -36,7 +36,7 @@ def matches(value, encoded):
 
 def user_record(data, importing=False):
     rules = {"id": identifier, "email": email, "display_name": text}
-    rules["password_hash" if importing else "password"] = valid_hash if importing else password
+    rules["password_hash" if importing else "password"] = valid_hash if importing else text
     record = fields(data, rules)
     if not importing:
         record["password_hash"] = hash_password(record.pop("password"))

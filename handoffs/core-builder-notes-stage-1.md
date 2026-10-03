@@ -4,6 +4,10 @@ Requirement source: handoffs/requirements-stage-1.md
 Dispatch revision: 32628cdcc4b81583e8074ad39e9e0bdf32e379cb
 
 Initial restructuring: no source files exist in copied repository; no behavior to restructure or earlier checks to rerun.
+
+Reviewer rejection 5916637, finding D1 (ledger 21):
+- [x] Distinguish signup's eight-character password rule from fixture password strings.
+- [ ] Verify short-password seed login and state transfer, signup rejection, full independent checks and supplied Stage 1 harness before final handoff.
 - [ ] 1. Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
 - [ ] 2. Complete buildable stage-1 folder contains Dockerfile, RUN.md and every runtime asset; no nested .git.
 - [ ] 3. Python implementation builds from clean checkout and starts with documented command without manual setup.
