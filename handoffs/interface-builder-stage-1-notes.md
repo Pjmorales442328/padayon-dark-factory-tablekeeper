@@ -15,6 +15,11 @@ changed. Consequently an unchanged-behavior rerun of a preexisting stage was not
 available. Container build and health verification remain pending until the shared
 `tablekeeper.service` module is present.
 
+Coordinator resolution: revision `d1803e126eb6f97d2a72f61424e7bc5bef42888e`
+confirms Stage 1 starts empty apart from mandates, has no prior frozen stage to copy,
+and requires copy-forward restructuring only for a later stage after predecessor
+acceptance. The absent source tree is the recorded restructuring evidence.
+
 1. [ ] Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
 2. [ ] Complete buildable stage-1 folder contains Dockerfile, RUN.md and every runtime asset; no nested .git.
 3. [ ] Python implementation builds from clean checkout and starts with documented command without manual setup.
