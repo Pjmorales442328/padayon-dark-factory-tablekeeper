@@ -164,14 +164,15 @@ class Create(Base2):
         self.assertEqual(self.pair_book(self.ada, T, ["t_1", "t_9"], 9, rest="r_other").status, 201)   # r_other pair
 
     def test_L069_L170_summed_capacity(self):
-        self.err(self.pair_book(self.ada, T, ["t_1", "t_2"], 7), 422, "party_exceeds_capacity")
-        self.err(self.pair_book(self.ada, T, ["t_1", "t_2"], 100), 422, "party_exceeds_capacity")
-        self.err(self.pair_book(self.ada, T, ["t_3"], 7), 422, "party_exceeds_capacity")
-        self.assertEqual(self.pair_book(self.ada, T, ["t_1", "t_2"], 6).status, 201)
+        # a pair may be booked for a party that fits a single table (18:00-19:30 on t_2,t_3)
+        self.assertEqual(self.pair_book(self.ada, f"{THU}T18:00", ["t_2", "t_3"], 1).status, 201)
+        later = f"{THU}T19:30"                                   # t_2 free again from 19:30
+        self.err(self.pair_book(self.ada, later, ["t_1", "t_2"], 7), 422, "party_exceeds_capacity")
+        self.err(self.pair_book(self.ada, later, ["t_1", "t_2"], 100), 422, "party_exceeds_capacity")
+        self.err(self.pair_book(self.ada, later, ["t_3"], 7), 422, "party_exceeds_capacity")
+        self.assertEqual(self.pair_book(self.ada, later, ["t_1", "t_2"], 6).status, 201)
         self.err(self.pair_book(self.ada, f"{THU}T21:00", ["t_2", "t_3"], 11), 422, "party_exceeds_capacity")
         self.assertEqual(self.pair_book(self.ada, f"{THU}T21:00", ["t_2", "t_3"], 10).status, 201)
-        # a pair may be booked for a party that fits a single table
-        self.assertEqual(self.pair_book(self.ada, f"{THU}T18:00", ["t_2", "t_3"], 1).status, 201)
 
     def test_L170_any_member_overlap_is_409(self):
         self.ok_pair(self.ada, T, ["t_1", "t_2"], 6)
@@ -523,16 +524,38 @@ class Races(Base2):
         self.assertEqual([o.status for o in outs], [201, 201])
 
     def test_L181_races_between_create_and_patch_and_move(self):
+        # three different bookings, all of which need t_3 at 19:00 -> exactly one may take it
         a = self.ok_book(self.ada, f"{THU}T21:00", table="t_3", party=2)
+        b = self.ok_book(self.ada, f"{THU}T21:00", table="t_1", party=2)
         outs = self.burst([
             lambda: self.pair_book(self.bob, T, ["t_2", "t_3"], 8, key="x1"),
             lambda: self.api.call("PATCH", f"/reservations/{a['reference']}", {"starts_at_local": T, "table_ids": ["t_3"]},
                                   token=self.ada),
-            lambda: self.api.call("POST", "/reservation-moves", {"moves": [{"reference": a["reference"], "starts_at_local": T,
+            lambda: self.api.call("POST", "/reservation-moves", {"moves": [{"reference": b["reference"], "starts_at_local": T,
                                                                            "table_ids": ["t_2", "t_3"], "party_size": 8}]},
                                   token=self.ada, key="x3")])
         wins = [o for o in outs if o.status in (200, 201)]
-        self.assertEqual(len(wins), 1, [o.status for o in outs])        # all three need t_3 at 19:00
+        self.assertEqual(len(wins), 1, [o.status for o in outs])
+        for o in outs:
+            if o not in wins:
+                self.err(o, 409, "table_unavailable")
+
+    def test_L180_self_amendments_have_a_serial_outcome(self):
+        # PATCH and move of the SAME reservation may both succeed (each replaces its own occupancy);
+        # the invariant is that exactly one booking holds the slot afterwards
+        a = self.ok_book(self.ada, f"{THU}T21:00", table="t_3", party=2)
+        outs = self.burst([
+            lambda: self.api.call("PATCH", f"/reservations/{a['reference']}", {"starts_at_local": T, "table_ids": ["t_3"]},
+                                  token=self.ada),
+            lambda: self.api.call("POST", "/reservation-moves", {"moves": [{"reference": a["reference"], "starts_at_local": T,
+                                                                           "table_ids": ["t_2", "t_3"], "party_size": 8}]},
+                                  token=self.ada, key="x4")])
+        self.assertTrue(all(o.status in (200, 201) for o in outs), [o.status for o in outs])
+        final = self.api.call("GET", f"/reservations/{a['reference']}", token=self.ada).json
+        self.assertIn(sorted(final["table_ids"]), (["t_3"], ["t_2", "t_3"]))
+        self.assertEqual(final["starts_at_local"], T)
+        held = self.options("r_anker", THU, 1)[T]["available_table_ids"]
+        self.assertEqual(held, [x for x in ("t_1", "t_2", "t_3") if x not in final["table_ids"]])
 
     def test_L180_L188_invariant_holds_under_mixed_load_and_reads_stay_consistent(self):
         import random

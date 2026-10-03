@@ -259,12 +259,23 @@ class Process(unittest.TestCase):
             self.assertEqual(pg.inner_text("p"), "ok")
             b.close()
 
+    @staticmethod
+    def metrics_python():
+        import shutil
+        cands = [os.environ.get("METRICS_PYTHON"), sys.executable, shutil.which("python"), shutil.which("py"), "C:/Python314/python.exe"]
+        for c in cands:
+            if c and subprocess.run([c, "-c", "import radon"], capture_output=True).returncode == 0:
+                return c
+        return None
+
     def test_L196_maintainability_measured_against_stage1(self):
+        py = self.metrics_python()
+        self.assertIsNotNone(py, "radon is not importable by any known interpreter (set METRICS_PYTHON)")
         res = {}
         for name, d in (("stage-1", STAGE1_DIR), ("stage-2", STAGE2_DIR)):
             pkg = os.path.join(d, "tablekeeper")
-            cc = subprocess.run(["python", "-m", "radon", "cc", "-a", "-s", "-j", pkg], capture_output=True, text=True)
-            mi = subprocess.run(["python", "-m", "radon", "mi", "-s", "-j", pkg], capture_output=True, text=True)
+            cc = subprocess.run([py, "-m", "radon", "cc", "-a", "-s", "-j", pkg], capture_output=True, text=True)
+            mi = subprocess.run([py, "-m", "radon", "mi", "-s", "-j", pkg], capture_output=True, text=True)
             self.assertEqual(cc.returncode, 0, cc.stderr[-300:])
             blocks = [b for v in json.loads(cc.stdout).values() if isinstance(v, list) for b in v]
             mis = {k: v for k, v in json.loads(mi.stdout).items()}

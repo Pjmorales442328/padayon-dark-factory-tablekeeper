@@ -19,7 +19,7 @@ if V1 not in sys.path:
 import common  # noqa: E402  (frozen stage 1 helpers)
 
 REPO = common.REPO
-STAGE2_DIR = os.path.join(REPO, "stage-2")
+STAGE2_DIR = os.environ.get("S2_DIR", os.path.join(REPO, "stage-2"))
 STAGE1_DIR = os.environ.get("FROZEN_STAGE1", os.path.join(REPO, "stage-1"))
 common.STAGE_DIR = STAGE2_DIR                       # default service folder is now stage-2
 if os.environ.get("S2_BASE_URL"):
@@ -80,6 +80,15 @@ class Base2(Base):
 def stop_process(p, wait=10):
     p.kill()
     p.wait(timeout=wait)
+
+
+def wait_port_closed(port, seconds=15):
+    t0 = time.time()
+    while time.time() - t0 < seconds:
+        if port_closed(port):
+            return True
+        time.sleep(0.2)
+    return False
 
 
 def port_closed(port):

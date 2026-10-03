@@ -11,7 +11,7 @@ import time
 import unittest
 
 from s2common import (Api, Base2, STAGE1_DIR, STAGE2_DIR, THU, FRI, fixture2, stage1_fixture, seed_res, start_at,
-                      stop_process, port_closed, common)
+                      stop_process, port_closed, wait_port_closed, common)
 from test_e_transfer import walk, get_at, replace_value, record_nodes
 
 T = f"{THU}T19:00"
@@ -65,7 +65,7 @@ class TestUpgrade(unittest.TestCase):
         cls.export = s.call("GET", "/_test/export").json                          # private: memory only
         # the actual source is stopped BEFORE the destination exists
         stop_process(cls.src_proc)
-        cls.source_stopped_before_import = port_closed(cls.src_port) and cls.src_proc.poll() is not None
+        cls.source_stopped_before_import = wait_port_closed(cls.src_port) and cls.src_proc.poll() is not None
         cls.dst_base, cls.dst_proc, _ = new_stage2()
         cls.d = Api(cls.dst_base)
         cls.d.call("POST", "/_test/reset", fixture2(reservations=[seed_res(9, "u_ada", "r_anker", "t_2", f"{THU}T20:00", 2, "DESTONLY")]))
@@ -77,6 +77,10 @@ class TestUpgrade(unittest.TestCase):
         for p in (cls.src_proc, cls.dst_proc):
             if p.poll() is None:
                 p.kill()
+
+    def setUp(self):
+        # every observation starts from the unchanged imported baseline (earlier methods mutate occupancy)
+        self.assertEqual(self.d.call("POST", "/_test/import", self.export).status, 204)
 
     def test_L152_L194_source_stopped_then_import_accepted(self):
         self.assertTrue(self.source_stopped_before_import, "source stage-1 process must be down before the import")
@@ -104,11 +108,11 @@ class TestUpgrade(unittest.TestCase):
 
     def test_L154_L184_references_resolve_and_singletons_gain_table_ids(self):
         d = self.d
-        for before in self.list_ada["reservations"] + self.list_bob["reservations"]:
-            tok = self.tok_ada if before["reservation_id"] != self.D["reservation_id"] else self.tok_bob
-            r = d.call("GET", f"/reservations/{before['reference']}", token=tok)
-            self.assertEqual(r.status, 200, before)
-            self.assertEqual(r.json, dict(before, table_ids=[before["table_id"]]), "legacy fields kept, table_ids added")
+        for tok, mine in ((self.tok_ada, self.list_ada["reservations"]), (self.tok_bob, self.list_bob["reservations"])):
+            for before in mine:
+                r = d.call("GET", f"/reservations/{before['reference']}", token=tok)
+                self.assertEqual(r.status, 200, before)
+                self.assertEqual(r.json, dict(before, table_ids=[before["table_id"]]), "legacy fields kept, table_ids added")
         got = d.call("GET", "/reservations", token=self.tok_ada).json["reservations"]
         self.assertEqual(got, [dict(x, table_ids=[x["table_id"]]) for x in self.list_ada["reservations"]])
         self.assertEqual(d.call("GET", "/reservations/BOBSEED1", token=self.tok_bob).json["reservation_id"], "res_s1")
@@ -237,7 +241,7 @@ class TestStage2Roundtrip(Base2):
     def test_L088_export_snapshot_detached_with_pairs(self):
         self.populate()
         exp = self.api.call("GET", "/_test/export").json
-        self.ok_pair(self.t, f"{THU}T20:30", ["t_1", "t_2"], 6)
+        self.ok_pair(self.t, f"{FRI}T19:00", ["t_1", "t_2"], 6)        # a genuinely free slot after the export
         self.reset()
         self.assertEqual(self.api.call("POST", "/_test/import", exp).status, 204)
         self.assertEqual(len(self.api.call("GET", "/reservations", token=self.t).json["reservations"]), 2)
@@ -261,6 +265,9 @@ class TestStage2ImportValidation(Base2):
         self.api.call("POST", "/reservation-moves", {"moves": [{"reference": self.single["reference"], "table_ids": ["t_2", "t_3"],
                                                                 "party_size": 8}]}, token=self.ada, key="iv-m")
         self.exp = self.api.call("GET", "/_test/export").json
+        self.restore_dest()
+
+    def restore_dest(self):
         self.dst.call("POST", "/_test/reset", fixture2(reservations=[seed_res(9, "u_ada", "r_anker", "t_2", f"{THU}T20:00", 2, "KEEPME1")]))
         self.keep = self.dst.call("POST", "/auth/login", {"email": "ada@example.com", "password": "correct horse"}).json["token"]
         self.before = self.dst.call("GET", "/_test/export").json
@@ -356,7 +363,7 @@ class TestStage2ImportValidation(Base2):
                 r = self.imp(st)
                 self.assertLess(r.status, 500, (p, kind, r))
                 if r.status == 204:
-                    self.setUp()
+                    self.restore_dest()                      # the source snapshot and the path list stay fixed
                 else:
                     rejected += 1
                     self.err(r, 422, "validation_failed")
