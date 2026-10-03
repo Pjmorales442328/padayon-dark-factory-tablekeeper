@@ -213,3 +213,8 @@ F. Maintainability baseline vs frozen stage-1, harness run, final report.
 
 ## Status
 Checks not yet run; stage-2 builders under restructure-only gate.
+
+## Status update
+Checks committed at 65d52fc (verification/stage2/**): 439 tests, ledger 197/197 (coverage_map2.py). Not run against a stage-2 candidate yet (builders under restructure gate; stage-2 still behaves as stage 1).
+Run (harness interpreter): C:/Users/Prince/Documents/darkfactory/dark-factory-wearedevs/.venv/Scripts/python.exe verification/stage2/run_stage2.py --out <fresh folder outside repo>
+Smoke on the stage-1-behaving copy: 88 API tests ran, expected failures only for absent stage-2 features; helper bug found and fixed (TestUpgrade.err).
