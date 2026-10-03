@@ -8,6 +8,13 @@ Scope: transport/deployment only; no UI; use Service.dispatch.
 
 ## Numbered requirement checklist
 
+Stage-start restructuring assessment: the committed baseline and working tree had no
+`stage-1/` source tree to restructure. Core-builder confirmed this is a new delivery
+folder and is creating only its owned domain modules there; no unrelated source was
+changed. Consequently an unchanged-behavior rerun of a preexisting stage was not
+available. Container build and health verification remain pending until the shared
+`tablekeeper.service` module is present.
+
 1. [ ] Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
 2. [ ] Complete buildable stage-1 folder contains Dockerfile, RUN.md and every runtime asset; no nested .git.
 3. [ ] Python implementation builds from clean checkout and starts with documented command without manual setup.
