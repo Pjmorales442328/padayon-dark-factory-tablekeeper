@@ -1,0 +1,2 @@
+# Runtime implementation uses Python's standard library.
+# IANA timezone data is installed by the Dockerfile's tzdata package.
