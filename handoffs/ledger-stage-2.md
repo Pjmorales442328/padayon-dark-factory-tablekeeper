@@ -36,7 +36,7 @@ Every numbered line requires an independent check. Lines 1–116 inherit stage 1
 32. No request produces a 5xx, including malformed input and concurrent load.
 33. Signup returns 201 user_id, display_name and token.
 34. Signup duplicate email gives 409 email_taken.
-35. Password under eight characters and email outside local@domain give 422 validation_failed.
+35. Signup password under eight characters and email outside local@domain give 422 validation_failed; fixture passwords are strings without signup minimum.
 36. Login returns 200 user_id, display_name, token; wrong password/unknown email gives 401 unauthenticated.
 37. Passwords stored only as password-function hashes, never plaintext.
 38. Missing/malformed/unknown bearer token gives 401 unauthenticated except booking visibility exception below.
@@ -203,4 +203,3 @@ Every numbered line requires an independent check. Lines 1–116 inherit stage 1
 195. Run inherited stage1 behavioral checks against stage2, new stage2 API/UI checks and full supplied isolated harness without skipping/deselecting/editing supplied checks.
 196. Measure maintainability against frozen stage1 baseline (radon/lizard plus observed limits), record figures and unresolved duplication-tool limits.
 197. Final stage2 report includes exact accepted/final revisions,all seat contributions,harness claim/report path,every rejection/change,start/end/time,maintainability and open limitations.
-
