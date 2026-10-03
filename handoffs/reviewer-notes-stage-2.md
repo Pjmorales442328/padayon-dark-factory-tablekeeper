@@ -23,7 +23,7 @@ Status: [x] inherited line verified at baseline (behaviour unchanged vs frozen s
 - [x] 19. Opening times are valid HH:MM with closes later on same day; no overnight opening.
 - [x] 20. Table capacities are positive integers; booleans never count as integers.
 - [x] 21. Seed users log in immediately with supplied password.
-- [ ] 22. Seed reservations accept table_id or table_ids and default confirmed unless explicit cancelled; preserve validation and supplied identities.
+- [x] (core api, 11997585) 22. Seed reservations accept table_id or table_ids and default confirmed unless explicit cancelled; preserve validation and supplied identities.
 - [x] 23. Past booking dates alone never cause rejection; cutoff still applies.
 - [x] 24. Every error uses {error:{code,message}} with specified status/code and human readable message.
 - [x] 25. Unparseable JSON, empty request body, non-object request body and ordinary wrong body field types give 400 malformed_request.
@@ -59,18 +59,18 @@ Status: [x] inherited line verified at baseline (behaviour unchanged vs frozen s
 - [x] 55. Availability requires restaurant_id,date,party_size; missing gives 422 validation_failed.
 - [x] 56. Availability date is valid local calendar date and party_size is positive integer query.
 - [x] 57. Availability response includes restaurant_id,date,timezone and slots.
-- [ ] 58. Slots step from opening by slot_minutes and fit absolute duration within closing; include single-table availability and available_options.
+- [x] (core api, 11997585) 58. Slots step from opening by slot_minutes and fit absolute duration within closing; include single-table availability and available_options.
 - [x] 59. Each slot has starts_at_local, offset starts_at, available_table_ids in fixture order.
 - [x] 60. Available tables have capacity >= party_size and no overlapping confirmed reservation.
 - [x] 61. Fully occupied slots still appear with empty table list; closed day returns empty slots.
-- [ ] 62. Create accepts legacy table_id or table_ids (never both), restaurant_id,starts_at_local,party_size and returns documented shape with table_ids plus table_id only for singles.
+- [x] (core api, 11997585) 62. Create accepts legacy table_id or table_ids (never both), restaurant_id,starts_at_local,party_size and returns documented shape with table_ids plus table_id only for singles.
 - [x] 63. Unknown restaurant/table or table outside restaurant gives 404 not_found.
 - [x] 64. Occupancy uses restaurant plus table ID; table IDs may repeat in different restaurants.
 - [x] 65. Confirmed occupancy is half-open absolute [start,start+duration); adjacent bookings do not overlap.
 - [x] 66. Overlap gives 409 table_unavailable; two racing same-table/time requests have exactly one winner.
 - [x] 67. Off-grid start gives 422 not_on_slot_grid measured from opening.
 - [x] 68. Outside opening or ending after closing gives 422 outside_opening_hours.
-- [ ] 69. Party exceeding sum of selected tables' capacities gives 422 party_exceeds_capacity.
+- [x] (core api, 11997585) 69. Party exceeding sum of selected tables' capacities gives 422 party_exceeds_capacity.
 - [x] 70. Nonexistent local time gives 422 invalid_local_time.
 - [x] 71. Reference is globally unique, 6..12 A-Z0-9 characters, immutable across changes.
 - [x] 72. Reservation ID is globally unique, immutable across changes; owner,restaurant and created_at preserved.
@@ -79,10 +79,10 @@ Status: [x] inherited line verified at baseline (behaviour unchanged vs frozen s
 - [x] 75. Cancel returns 200 full cancelled state and immediately frees occupancy.
 - [x] 76. Repeat cancel returns same current state with 200 even after cutoff.
 - [x] 77. Cancel at/within cutoff or after current start gives 409 cutoff_passed.
-- [ ] 78. PATCH accepts table_id or table_ids,starts_at_local,party_size; omitted fields retained; both table selectors invalid; no key required.
+- [x] (core api, 11997585) 78. PATCH accepts table_id or table_ids,starts_at_local,party_size; omitted fields retained; both table selectors invalid; no key required.
 - [x] 79. PATCH uses create validation and current start cutoff; cancelled gives 409 reservation_cancelled.
 - [x] 80. Successful PATCH releases/reserves together; failure preserves booking/occupancy.
-- [ ] 81. No-op amendment, including same unordered pair in another order, returns 200 retaining all values.
+- [x] (core api, 11997585) 81. No-op amendment, including same unordered pair in another order, returns 200 retaining all values.
 - [x] 82. Spring-gap times absent in availability and rejected on create/amend.
 - [x] 83. Fall-fold times resolve first occurrence only, appear once, second occurrence not bookable.
 - [x] 84. Duration arithmetic is absolute time; ends_at follows resulting local offset, including fold example.
@@ -106,7 +106,7 @@ Status: [x] inherited line verified at baseline (behaviour unchanged vs frozen s
 - [x] 102. Receipts scope user/method/path/key, refer to existing user and valid immutable response snapshots; loading validates bodies/responses and key constraints without requiring equality to subsequently changed bookings.
 - [x] 103. Batch moves requires auth/key; moves is 1..8 objects with distinct string references; invalid shape/duplicates give 422 validation_failed.
 - [x] 104. Every batch booking belongs to caller and same restaurant; unknown/other owner gives 404; different restaurants gives 422 validation_failed.
-- [ ] 105. Batch accepts PATCH fields including table_ids, retains omitted values, ignores unknown fields and preserves identity,owner,creation time.
+- [x] (core api, 11997585) 105. Batch accepts PATCH fields including table_ids, retains omitted values, ignores unknown fields and preserves identity,owner,creation time.
 - [x] 106. Cancelled batch booking gives 409 reservation_cancelled; existing cutoff applies per booking.
 - [x] 107. Batch non-occupancy errors precede any occupancy conflict, in input order; cutoff precedes other changes for that booking.
 - [x] 108. Resulting bookings overlapping each other or unlisted confirmed bookings give 409 table_unavailable; unchanged items retain occupancy.
@@ -153,49 +153,49 @@ Status: [x] inherited line verified at baseline (behaviour unchanged vs frozen s
 - [ ] 149. Lookup has lookup-reference-input,lookup-submit; found reservation-detail and reservation-status exactly confirmed/cancelled.
 - [ ] 150. reservation-cancel-button cancels and is absent after cancellation; reservation-error shown for not found/cancel refused.
 - [ ] 151. reservation-tables on lookup names every selected table; single confirmation/lookup behavior unchanged.
-- [ ] 152. Stage-2 accepts own stage-1 export with source service stopped before destination import; no source process/files/port/network dependence.
+- [x] (core api, 11997585) 152. Stage-2 accepts own stage-1 export with source service stopped before destination import; no source process/files/port/network dependence.
 - [ ] 153. Pre-upgrade signed-in browser remains signed in after between-request import, without reload/new screen.
 - [ ] 154. Retained pre-upgrade booking reference works in lookup after import.
 - [ ] 155. Response-lost pre-upgrade booking retries after import with same body/key and original confirmation; form and pending retry identity survive.
-- [ ] 156. Restaurant combinable field is ordered list of unordered pairs of that restaurant's table IDs; pair member order preserved for option output/testids.
-- [ ] 157. Only declared pairs bookable; never triples; combination relation nontransitive.
-- [ ] 158. Combination capacity equals sum of two distinct member capacities.
-- [ ] 159. Confirmed combination occupies each member for entire half-open absolute duration, scoped restaurant+table.
-- [ ] 160. Seed reservations may use table_id or table_ids and status cancelled; confirmed default; cancelled seeds occupy no tables.
-- [ ] 161. Availability available_table_ids remains singles-only behavior; slots gain available_options.
-- [ ] 162. available_options lists all eligible free singles first in fixture order, then eligible free pairs in combinable order.
-- [ ] 163. Pair option table_ids keeps combinable order; capacity sum; every member must be free and capacity>=party size.
-- [ ] 164. Combination overlapping any occupied member omitted from available_options even if other member free; cross-restaurant identical table IDs independent.
-- [ ] 165. Create legacy table_id means singleton; table_ids supports singleton or declared pair; sending both gives422 validation_failed.
-- [ ] 166. Reservation responses always contain table_ids; table_id present exactly for singleton and absent for pair.
-- [ ] 167. Unlisted pair or more than two tables gives422 combination_not_allowed.
-- [ ] 168. Duplicate selected table ID gives422 validation_failed; empty selection invalid with422 validation_failed; wrong JSON types follow inherited precedence unless overridden.
-- [ ] 169. Unknown member or restaurant-local mismatch gives inherited404 not_found; IDs remain string max64.
-- [ ] 170. Any member occupancy overlap gives409 table_unavailable; party above summed capacity gives422 party_exceeds_capacity.
-- [ ] 171. PATCH accepts table_ids same rules, atomically releases old members/reserves new members; failure changes none.
-- [ ] 172. Cancellation frees all members immediately; repeated cancellation identical state200.
-- [ ] 173. No-op pair order reversal returns200 without changing identities,timestamps,table selection values or occupancy.
+- [x] (core api, 11997585) 156. Restaurant combinable field is ordered list of unordered pairs of that restaurant's table IDs; pair member order preserved for option output/testids.
+- [x] (core api, 11997585) 157. Only declared pairs bookable; never triples; combination relation nontransitive.
+- [x] (core api, 11997585) 158. Combination capacity equals sum of two distinct member capacities.
+- [x] (core api, 11997585) 159. Confirmed combination occupies each member for entire half-open absolute duration, scoped restaurant+table.
+- [x] (core api, 11997585) 160. Seed reservations may use table_id or table_ids and status cancelled; confirmed default; cancelled seeds occupy no tables.
+- [x] (core api, 11997585) 161. Availability available_table_ids remains singles-only behavior; slots gain available_options.
+- [x] (core api, 11997585) 162. available_options lists all eligible free singles first in fixture order, then eligible free pairs in combinable order.
+- [x] (core api, 11997585) 163. Pair option table_ids keeps combinable order; capacity sum; every member must be free and capacity>=party size.
+- [x] (core api, 11997585) 164. Combination overlapping any occupied member omitted from available_options even if other member free; cross-restaurant identical table IDs independent.
+- [x] (core api, 11997585) 165. Create legacy table_id means singleton; table_ids supports singleton or declared pair; sending both gives422 validation_failed.
+- [x] (core api, 11997585) 166. Reservation responses always contain table_ids; table_id present exactly for singleton and absent for pair.
+- [x] (core api, 11997585) 167. Unlisted pair or more than two tables gives422 combination_not_allowed.
+- [x] (core api, 11997585) 168. Duplicate selected table ID gives422 validation_failed; empty selection invalid with422 validation_failed; wrong JSON types follow inherited precedence unless overridden.
+- [x] (core api, 11997585) 169. Unknown member or restaurant-local mismatch gives inherited404 not_found; IDs remain string max64.
+- [x] (core api, 11997585) 170. Any member occupancy overlap gives409 table_unavailable; party above summed capacity gives422 party_exceeds_capacity.
+- [x] (core api, 11997585) 171. PATCH accepts table_ids same rules, atomically releases old members/reserves new members; failure changes none.
+- [x] (core api, 11997585) 172. Cancellation frees all members immediately; repeated cancellation identical state200.
+- [x] (core api, 11997585) 173. No-op pair order reversal returns200 without changing identities,timestamps,table selection values or occupancy.
 - [ ] 174. Combination UI cells use slot-{t_a}+{t_b}-{HH:MM} in combinable order and data-available consistent with eligible option.
 - [ ] 175. Combination cells shown when declared pair available for searched party size; all names use table labels.
 - [ ] 176. Single cell testids, confirmations and lookup remain compatible with stage1 singles.
-- [ ] 177. Atomic moves accept table_ids per item with inherited validation/cutoff/order/retry behavior; resulting booking sets cannot overlap any member.
-- [ ] 178. Batch swap between singles/pairs commits all or nothing; non-occupancy errors precede occupancy; unchanged pair permutations no-op.
-- [ ] 179. Combination receipt retries preserve original response after amendment/cancel and export/import; body comparison remains JSON-value based.
-- [ ] 180. Concurrent bookings/amendments/moves/read/reset/export/import are serializable: every read sees consistent before/after state, never partial occupancy.
-- [ ] 181. Race for any shared member table/time gives exactly one winner; disjoint member sets may both succeed.
-- [ ] 182. Reset validates combinable shape, distinct member strings, known local tables and duplicate unordered declarations; invalid fixture replacement changes nothing.
-- [ ] 183. Import validates stage2 combination config/selection/relations/status/type/overlap as create; another track/invalid state422 atomically without5xx.
-- [ ] 184. Stage1 imported configs without combinable behave as no pairs; imported singleton bookings gain stage2 table_ids while preserving legacy table_id.
-- [ ] 185. Stage1 successful receipt snapshots retain original JSON responses exactly, even if missing stage2 table_ids; retries remain valid without regenerated identities.
-- [ ] 186. Loading/transferring user IDs/emails,tokens,restaurant IDs/table-local IDs,reservation IDs/global references and receipt scope retain inherited invariants.
-- [ ] 187. Pair declaration identifier is unordered restaurant-local member set, not globally scoped table IDs; stored order remains presentation order.
-- [ ] 188. Confirmed occupancy invariant applies to every member across all reservations; cancelled bookings/receipts cannot create occupancy.
-- [ ] 189. Import/reset validates reservation owner/configuration/member relationships, unique references/IDs, temporal consistency and receipt-token ownership; validates legacy and new versions before replacement.
+- [x] (core api, 11997585) 177. Atomic moves accept table_ids per item with inherited validation/cutoff/order/retry behavior; resulting booking sets cannot overlap any member.
+- [x] (core api, 11997585) 178. Batch swap between singles/pairs commits all or nothing; non-occupancy errors precede occupancy; unchanged pair permutations no-op.
+- [x] (core api, 11997585) 179. Combination receipt retries preserve original response after amendment/cancel and export/import; body comparison remains JSON-value based.
+- [x] (core api, 11997585) 180. Concurrent bookings/amendments/moves/read/reset/export/import are serializable: every read sees consistent before/after state, never partial occupancy.
+- [x] (core api, 11997585) 181. Race for any shared member table/time gives exactly one winner; disjoint member sets may both succeed.
+- [x] (core api, 11997585) 182. Reset validates combinable shape, distinct member strings, known local tables and duplicate unordered declarations; invalid fixture replacement changes nothing.
+- [x] (core api, 11997585) 183. Import validates stage2 combination config/selection/relations/status/type/overlap as create; another track/invalid state422 atomically without5xx.
+- [x] (core api, 11997585) 184. Stage1 imported configs without combinable behave as no pairs; imported singleton bookings gain stage2 table_ids while preserving legacy table_id.
+- [x] (core api, 11997585) 185. Stage1 successful receipt snapshots retain original JSON responses exactly, even if missing stage2 table_ids; retries remain valid without regenerated identities.
+- [x] (core api, 11997585) 186. Loading/transferring user IDs/emails,tokens,restaurant IDs/table-local IDs,reservation IDs/global references and receipt scope retain inherited invariants.
+- [x] (core api, 11997585) 187. Pair declaration identifier is unordered restaurant-local member set, not globally scoped table IDs; stored order remains presentation order.
+- [x] (core api, 11997585) 188. Confirmed occupancy invariant applies to every member across all reservations; cancelled bookings/receipts cannot create occupancy.
+- [x] (core api, 11997585) 189. Import/reset validates reservation owner/configuration/member relationships, unique references/IDs, temporal consistency and receipt-token ownership; validates legacy and new versions before replacement.
 - [ ] 190. Browser session storage contains token/display identity and pending request key/body; successful stage1 token import remains valid; browser state never substitutes for server response.
 - [ ] 191. Use supplied interpreter/playwright Chromium/axe tools for browser checks; install nothing into harness interpreter.
 - [ ] 192. Independent browser checks exercise late searches,409 refresh preserving form,lost responses before/after commit,same-key retry,changed form key,combination equivalents and between-request upgrade.
 - [ ] 193. Independent checks cover responsive375px/desktop,no horizontal scroll,labels/focus/contrast,distinct states and complete required flows; retain screenshots outside frozen source as reviewable evidence.
-- [ ] 194. Before import proof stop actual stage1 process/container, then start independent stage2 destination and verify old accounts/tokens/references/create and batch receipts.
+- [x] (core api, 11997585) 194. Before import proof stop actual stage1 process/container, then start independent stage2 destination and verify old accounts/tokens/references/create and batch receipts.
 - [ ] 195. Run inherited stage1 behavioral checks against stage2, new stage2 API/UI checks and full supplied isolated harness without skipping/deselecting/editing supplied checks.
 - [ ] 196. Measure maintainability against frozen stage1 baseline (radon/lizard plus observed limits), record figures and unresolved duplication-tool limits.
 - [ ] 197. Final stage2 report includes exact accepted/final revisions,all seat contributions,harness claim/report path,every rejection/change,start/end/time,maintainability and open limitations.

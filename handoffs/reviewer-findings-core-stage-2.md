@@ -1,0 +1,17 @@
+# Reviewer findings: Stage 2 core checkpoint 11997585c60f94b0b060a2879899ff1db7eb84c6 (core-builder)
+
+Decision: SCOPED CORE ACCEPTANCE (API, combined-table domain, state transfer). No service defects found. Not a stage-2 acceptance: UI/static, browser recovery, 375px/desktop evidence, stage-2 harness claim and integrated stopped-stage-1 proof are pending. I did not use disputed tester assertions as requirements; T1-T7 were judged from the spec.
+Method: git archive 11997585 stage-2 built as image (rv/s4), run in Docker; probes rv/q.py (api, transfer, upgrade) over published ports; stage-1 source was the frozen stage-1 image (06ad44b code).
+
+Observed (all as the spec requires):
+- Availability: available_table_ids singles only; available_options singles in fixture order then declared pairs in combinable order, capacity summed, party-size filter (p5: only pairs; p1: 4 singles then 2 pairs); a pair is dropped when any member is occupied; r1/r2 with identical table ids independent; option list after cancel restores the pair.
+- Create: table_ids pair in either input order stored in combinable order; legacy table_id = singleton; responses carry table_ids, table_id only for singletons. Unlisted pair, non-transitive t_1+t_3, t_1+t_4: 422 combination_not_allowed. Triple (also with duplicates): 422 combination_not_allowed. Duplicate pair, empty, missing, both selectors: 422 validation_failed. Non-array / non-string members: 400. Unknown member: 404. Pair over summed capacity: 422 party_exceeds_capacity. Overlap on any member (single vs pair member, t_2+t_3 vs t_1+t_2): 409.
+- PATCH: pair to single and back, both selectors 422, conflicting move 409 with booking unchanged, no-op order reversal 200 with record byte-identical. Cancel frees every member.
+- Moves: swap pair<->single 201 atomic, non-occupancy error (422) beats occupancy, pair no-op, replay 200 identical.
+- Concurrency: 40 racers over pair/overlapping/single on shared member: exactly 1 winner (39 x 409). Disjoint sets (pair, t_3, t_4) x30: 3 winners.
+- Reset validation: combinable with triple, duplicate member, unknown member, duplicate unordered pair, non-list, ints: 422; seed pair ok; cancelled seed overlapping a confirmed one ok (occupies nothing); pair overlapping single, bad status, both selectors, unlisted pair, pair over capacity: 422. GET /restaurants/r1 returns combinable.
+- Stopped-source transfer (API level): stage-1 container populated (create + batch receipts), exported, then docker stop; destination stage-2 import 204; stage-1 token still valid, reference lookup works with table_ids added (legacy table_id kept), replay of stage-1 create key returns 200 identical to the original JSON (no table_ids added), batch replay 200 identical, stage-1 config without combinable gives no pairs (pair booking 422), re-import of own export, login works, inconsistent stored selectors 422 and service stays healthy.
+- Stage 1 unchanged: `git diff --stat 344e085 HEAD -- stage-1` empty.
+- Maintainability (radon): average CC 2.78 (stage 1: 2.64, slightly higher with new features); max B(9) (server.py _read_json_body, service.single, same as stage 1); no function above 10; largest file server.py 167 lines. No duplicate-block tool available.
+
+Pending (not defects): interface UI/templates/static (GET / was 500 and /static 404 at this checkpoint, per core report I1), integrated harness claim (stage 2) and stage-2 browser evidence; advisories from stage 1 still open (chunked bodies 400, reset cost per user, availability scan cost).
