@@ -92,7 +92,7 @@ class Availability(Base):
     def test_L058_end_exactly_at_close_and_friday(self):
         fri = [s["starts_at_local"] for s in self.avail("r_anker", FRI)["slots"]]
         self.assertEqual(fri[-1], f"{FRI}T22:00")   # 22:00+90 = 23:30 == closes
-        self.assertEqual(len(fri), 10)
+        self.assertEqual(len(fri), 9)       # 18:00..22:00 inclusive
         sat = [s["starts_at_local"] for s in self.avail("r_anker", SAT)["slots"]]
         self.assertEqual(sat[-1], f"{SAT}T21:30")
         # odd grid measured from opening, not midnight: 12:00 open, 60-minute slots

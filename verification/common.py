@@ -38,13 +38,14 @@ def free_port():
 
 
 def start_service(extra_env=None, wait=60):
-    cmd = os.environ.get("SERVICE_CMD") or f'"{sys.executable}" -m tablekeeper.server'
+    cmd = os.environ.get("SERVICE_CMD")
+    argv = shlex.split(cmd, posix=False) if cmd else [sys.executable, "-m", "tablekeeper.server"]
     cwd = os.environ.get("SERVICE_CWD") or STAGE_DIR
     port = free_port()
     env = dict(os.environ, PORT=str(port), **(extra_env or {}))
     log = open(os.path.join(os.environ.get("CHECK_LOG_DIR", os.environ.get("TEMP", ".")),
                             f"svc_{port}.log"), "wb")
-    p = subprocess.Popen(shlex.split(cmd, posix=False), cwd=cwd, env=env, stdout=log, stderr=log)
+    p = subprocess.Popen(argv, cwd=cwd, env=env, stdout=log, stderr=log)
     _procs.append(p)
     base = f"http://127.0.0.1:{port}"
     t0 = time.time()

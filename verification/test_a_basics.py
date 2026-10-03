@@ -1,5 +1,6 @@
 """Conventions, errors, validation, auth, health, reset (ledger 4,7-16,24-41)."""
 import json
+import urllib.parse
 import threading
 import time
 import unittest
@@ -157,7 +158,7 @@ class Conventions(Base):
 
     def test_L030_integer_query_params(self):
         for v in ("1e9", "4.0", "+4", "-1", "0", "", "abc", " 4", "4 ", "0x4", "٤"):
-            r = self.api.call("GET", f"/availability?restaurant_id=r_anker&date={THU}&party_size={v.replace(' ', '%20')}")
+            r = self.api.call("GET", f"/availability?restaurant_id=r_anker&date={THU}&party_size={urllib.parse.quote(v)}")
             self.err(r, 422, "validation_failed")
         r = self.api.call("GET", f"/availability?restaurant_id=r_anker&date={THU}&party_size=04")
         self.assertIn(r.status, (200, 422))  # leading zero: digits only; either reading is tolerated

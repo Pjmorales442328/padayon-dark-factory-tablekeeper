@@ -214,7 +214,9 @@ class Transfer(Populated):
                                                       starts_at_local=f"{THU}T21:00"), token=self.t_bob, key=self.k1)
         self.assertEqual(other.status, 201, other)
         # occupancy preserved: patched booking still blocks its slot
-        self.err(d.call("POST", "/reservations", self.create_body, token=self.t_bob, key="fresh-a"), 409, "table_unavailable")
+        cur = self.patched                                  # B now sits on t_2 at 21:00
+        blocked = dict(self.create_body, table_id=cur["table_id"], starts_at_local=cur["starts_at_local"])
+        self.err(d.call("POST", "/reservations", blocked, token=self.t_bob, key="fresh-a"), 409, "table_unavailable")
 
     def test_L090_import_replaces_not_merges_and_repeats(self):
         self.populate()

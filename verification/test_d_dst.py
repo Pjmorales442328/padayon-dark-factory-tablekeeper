@@ -86,6 +86,7 @@ class Dst(Base):
         j2 = self.ok_book(self.ada, f"{DE_FALL}T01:30", rest="r_dst_de", table="t_2")
         self.assertEqual(j2["starts_at"], f"{DE_FALL}T01:30:00+02:00")
         self.assertEqual(j2["ends_at"], f"{DE_FALL}T02:00:00+01:00")     # reads 02:00, not 03:00
+        self.reset()
         j3 = self.ok_book(self.ada, f"{DE_FALL}T02:30", rest="r_dst_de", table="t_2", party=1)
         self.assertEqual(j3["ends_at"], f"{DE_FALL}T03:00:00+01:00")
 

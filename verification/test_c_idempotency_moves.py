@@ -101,12 +101,12 @@ class Idempotency(Base):
     def test_L044_scope_user(self):
         a, b = self.ada, self.bob
         r1 = self.post(a, body(table="t_1"), "same")
-        r2 = self.post(b, body(table="t_2"), "same")
-        self.assertEqual((r1.status, r2.status), (201, 201))
-        self.assertNotEqual(r1.json["reference"], r2.json["reference"])
-        # same key AND same body from another user is not a replay
+        # same key AND same body from another user is not a replay (table is taken)
         r3 = self.post(b, body(table="t_1"), "same")
         self.err(r3, 409, "table_unavailable")
+        r2 = self.post(b, body(table="t_2"), "same")      # failed 4xx did not consume bob's key
+        self.assertEqual((r1.status, r2.status), (201, 201))
+        self.assertNotEqual(r1.json["reference"], r2.json["reference"])
         self.assertEqual(self.post(a, body(table="t_1"), "same").status, 200)
         self.assertEqual(self.post(b, body(table="t_2"), "same").status, 200)
 
