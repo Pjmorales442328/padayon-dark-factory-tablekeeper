@@ -2,119 +2,119 @@
 
 Status key: T = transport files, assessed now; C = pending core/integration (not assessed, not a rejection); R = pending full-candidate review. Tick = [x] assessed, [ ] pending.
 
-- [ ] (C) 1. Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
+- [x] (C) 1. Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
 - [x] (T) 2. Complete buildable stage-1 folder contains Dockerfile, RUN.md and every runtime asset; no nested .git.
 - [x] (T) 3. Python implementation builds from clean checkout and starts with documented command without manual setup.
 - [x] (T) 4. Listen on 0.0.0.0, PORT environment variable, default 8080.
 - [x] (T) 5. Runtime has no outbound network and requires no external service or Compose.
-- [ ] (C) 6. Operate within 2 CPUs and 2 GiB.
+- [x] (C) 6. Operate within 2 CPUs and 2 GiB.
 - [x] (T) 7. Health becomes 200 {status:ok} within 60 seconds when store is usable.
 - [x] (T) 8. Support 50 in-flight requests without 5xx.
 - [x] (T) 9. Requests finish within 5 seconds; reset and test control calls within 10 seconds.
-- [ ] (C) 10. State may be ephemeral across container restart.
+- [x] (C) 10. State may be ephemeral across container restart.
 - [x] (T) 11. JSON responses use application/json; charset=utf-8; timestamps are RFC3339 with explicit offset.
 - [x] (T) 12. Unknown body fields and query parameters are ignored.
-- [ ] (C) 13. Every identifier is an opaque string at most 64 characters, including fixture IDs.
-- [ ] (C) 14. Reset is unauthenticated, enabled, returns 204 and atomically replaces all state.
-- [ ] (C) 15. Repeated reset removes prior accounts, sessions, reservations, receipts and imported state.
-- [ ] (C) 16. Restaurant and table configuration comes only from reset; no creation APIs required.
-- [ ] (C) 17. Restaurant timezone is valid IANA zone; slot and duration minutes are positive integers; cutoff is nonnegative integer.
-- [ ] (C) 18. Opening weekdays are mon through sun; missing weekday is closed.
-- [ ] (C) 19. Opening times are valid HH:MM with closes later on same day; no overnight opening.
-- [ ] (C) 20. Table capacities are positive integers; booleans never count as integers.
-- [ ] (C) 21. Seed users log in immediately with supplied password.
-- [ ] (C) 22. Seed reservations use create fields plus id, reference, user_id and are confirmed.
-- [ ] (C) 23. Past booking dates alone never cause rejection; cutoff still applies.
+- [x] (C) 13. Every identifier is an opaque string at most 64 characters, including fixture IDs.
+- [x] (C) 14. Reset is unauthenticated, enabled, returns 204 and atomically replaces all state.
+- [x] (C) 15. Repeated reset removes prior accounts, sessions, reservations, receipts and imported state.
+- [x] (C) 16. Restaurant and table configuration comes only from reset; no creation APIs required.
+- [x] (C) 17. Restaurant timezone is valid IANA zone; slot and duration minutes are positive integers; cutoff is nonnegative integer.
+- [x] (C) 18. Opening weekdays are mon through sun; missing weekday is closed.
+- [x] (C) 19. Opening times are valid HH:MM with closes later on same day; no overnight opening.
+- [x] (C) 20. Table capacities are positive integers; booleans never count as integers.
+- [x] (C) 21. Seed users log in immediately with supplied password.
+- [x] (C) 22. Seed reservations use create fields plus id, reference, user_id and are confirmed.
+- [x] (C) 23. Past booking dates alone never cause rejection; cutoff still applies.
 - [x] (T) 24. Every error uses {error:{code,message}} with specified status/code and human readable message.
 - [x] (T) 25. Unparseable JSON, empty request body, non-object request body and ordinary wrong body field types give 400 malformed_request.
 - [x] (T) 26. Numeric starts_at_local gives 400 malformed_request.
-- [ ] (C) 27. Missing required fields and valid-type invalid formats/ranges give 422 validation_failed unless specific code applies.
-- [ ] (C) 28. Invalid party_size including string, boolean, fraction, zero and negative gives 422 validation_failed.
-- [ ] (C) 29. starts_at_local strings must be bare YYYY-MM-DDTHH:MM; offsets, Z, seconds and invalid dates give 422 validation_failed.
-- [ ] (C) 30. Integer query parameters accept plain decimal digits only; 1e9, 4.0 and +4 give 422 validation_failed.
+- [x] (C) 27. Missing required fields and valid-type invalid formats/ranges give 422 validation_failed unless specific code applies.
+- [x] (C) 28. Invalid party_size including string, boolean, fraction, zero and negative gives 422 validation_failed.
+- [x] (C) 29. starts_at_local strings must be bare YYYY-MM-DDTHH:MM; offsets, Z, seconds and invalid dates give 422 validation_failed.
+- [x] (C) 30. Integer query parameters accept plain decimal digits only; 1e9, 4.0 and +4 give 422 validation_failed.
 - [x] (T) 31. Required absent/empty idempotency header gives 400 missing_idempotency_key; length over 255 gives 422 validation_failed.
 - [x] (T) 32. No request produces a 5xx, including malformed input and concurrent load.
-- [ ] (C) 33. Signup returns 201 user_id, display_name and token.
-- [ ] (C) 34. Signup duplicate email gives 409 email_taken.
-- [ ] (C) 35. Password under eight characters and email outside local@domain give 422 validation_failed.
-- [ ] (C) 36. Login returns 200 user_id, display_name, token; wrong password/unknown email gives 401 unauthenticated.
-- [ ] (C) 37. Passwords stored only as password-function hashes, never plaintext.
-- [ ] (C) 38. Missing/malformed/unknown bearer token gives 401 unauthenticated except booking visibility exception below.
-- [ ] (C) 39. Tokens never expire and multiple tokens/concurrent sessions remain valid.
-- [ ] (C) 40. Health, reset, signup, login, restaurant list/detail, availability, export and import are public.
-- [ ] (C) 41. Other endpoints require bearer authentication; permitted-resource restrictions use specified 403/404 codes.
-- [ ] (C) 42. Another guest and anonymous caller receive 404 not_found for someone else's booking; do not expose existence.
-- [ ] (C) 43. Idempotency applies to POST reservations and POST reservation-moves.
-- [ ] (C) 44. Receipt identity scopes user, method, path and key; different users do not interfere.
-- [ ] (C) 45. Same key/body on another path is independent and succeeds normally.
-- [ ] (C) 46. Resolve receipts after JSON-object parsing and authentication, before field/current-resource validation.
-- [ ] (C) 47. Used key with different JSON body gives 409 idempotency_key_reuse even if new body invalid.
-- [ ] (C) 48. First successful request returns 201; replay returns 200 identical original JSON response.
-- [ ] (C) 49. JSON body comparison ignores whitespace and key order and preserves JSON value types.
-- [ ] (C) 50. Failed 4xx requests do not consume keys; reuse is first use.
-- [ ] (C) 51. Concurrent identical unused-key writes return exactly one 201 and others 200 identical bodies with one operation.
-- [ ] (C) 52. Replay after amendment/cancellation returns original response without state changes.
-- [ ] (C) 53. Restaurant list returns restaurants with id,name,timezone in fixture order.
-- [ ] (C) 54. Restaurant detail returns full fixture-shaped configuration; unknown gives 404 not_found.
-- [ ] (C) 55. Availability requires restaurant_id,date,party_size; missing gives 422 validation_failed.
-- [ ] (C) 56. Availability date is valid local calendar date and party_size is positive integer query.
-- [ ] (C) 57. Availability response includes restaurant_id,date,timezone and slots.
-- [ ] (C) 58. Slots step from opening by slot_minutes and fit absolute duration within closing.
-- [ ] (C) 59. Each slot has starts_at_local, offset starts_at, available_table_ids in fixture order.
-- [ ] (C) 60. Available tables have capacity >= party_size and no overlapping confirmed reservation.
-- [ ] (C) 61. Fully occupied slots still appear with empty table list; closed day returns empty slots.
-- [ ] (C) 62. Create requires restaurant_id,table_id,starts_at_local,party_size and returns full documented reservation shape.
-- [ ] (C) 63. Unknown restaurant/table or table outside restaurant gives 404 not_found.
-- [ ] (C) 64. Occupancy uses restaurant plus table ID; table IDs may repeat in different restaurants.
-- [ ] (C) 65. Confirmed occupancy is half-open absolute [start,start+duration); adjacent bookings do not overlap.
-- [ ] (C) 66. Overlap gives 409 table_unavailable; two racing same-table/time requests have exactly one winner.
-- [ ] (C) 67. Off-grid start gives 422 not_on_slot_grid measured from opening.
-- [ ] (C) 68. Outside opening or ending after closing gives 422 outside_opening_hours.
-- [ ] (C) 69. Party exceeding table capacity gives 422 party_exceeds_capacity.
-- [ ] (C) 70. Nonexistent local time gives 422 invalid_local_time.
-- [ ] (C) 71. Reference is globally unique, 6..12 A-Z0-9 characters, immutable across changes.
-- [ ] (C) 72. Reservation ID is globally unique, immutable across changes; owner,restaurant and created_at preserved.
-- [ ] (C) 73. Reservation list includes only caller's confirmed/cancelled bookings, starts_at descending, exact create shapes; empty list supported.
-- [ ] (C) 74. Reference lookup returns own booking or 404 for absent/invisible booking.
-- [ ] (C) 75. Cancel returns 200 full cancelled state and immediately frees occupancy.
-- [ ] (C) 76. Repeat cancel returns same current state with 200 even after cutoff.
-- [ ] (C) 77. Cancel at/within cutoff or after current start gives 409 cutoff_passed.
-- [ ] (C) 78. PATCH accepts any subset table_id,starts_at_local,party_size; omitted fields retain values; no key required.
-- [ ] (C) 79. PATCH uses create validation and current start cutoff; cancelled gives 409 reservation_cancelled.
-- [ ] (C) 80. Successful PATCH releases/reserves together; failure preserves booking/occupancy.
-- [ ] (C) 81. No-op amendment returns 200 retaining all values.
-- [ ] (C) 82. Spring-gap times absent in availability and rejected on create/amend.
-- [ ] (C) 83. Fall-fold times resolve first occurrence only, appear once, second occurrence not bookable.
-- [ ] (C) 84. Duration arithmetic is absolute time; ends_at follows resulting local offset, including fold example.
-- [ ] (C) 85. Berlin 2026-03-29 and 2026-10-25 transitions handled with IANA offsets.
-- [ ] (C) 86. New York 2026-03-08 and 2026-11-01 transitions handled with IANA offsets.
-- [ ] (C) 87. Export returns 200 object track tablekeeper, format_version integer 1, state object.
-- [ ] (C) 88. Export is atomic read-only detached snapshot unaffected by later source writes.
-- [ ] (C) 89. Import accepts unchanged service export across independent process/port/files/network; returns 204 atomically.
-- [ ] (C) 90. Import replaces rather than merges and repeated import does not duplicate data.
-- [ ] (C) 91. Invalid JSON import uses malformed_request; missing fields, wrong track/version or invalid state give 422 validation_failed without any changes.
-- [ ] (C) 92. Another track export gives 422 validation_failed and preserves destination state.
-- [ ] (C) 93. Import preserves accounts/password hashes, token validity, configuration, reservation identities/statuses/timestamps/references.
-- [ ] (C) 94. Import preserves completed request bodies and original responses for create and moves; failed keys stay reusable.
-- [ ] (C) 95. Import deletes all previous destination accounts/tokens/data; reset clears imported state.
-- [ ] (C) 96. Reset fixtures and imported state validate all types, IDs, relations and booking rules, including confirmed overlaps.
-- [ ] (C) 97. User IDs scope globally; emails uniquely identify accounts; loading validates unique IDs/emails and account field types.
-- [ ] (C) 98. Restaurant IDs scope globally; loading validates uniqueness, timezone, policy and hours types/ranges.
-- [ ] (C) 99. Table IDs scope within restaurant only; loading validates uniqueness within restaurant and capacity types/ranges.
-- [ ] (C) 100. Reservations refer to existing user,restaurant and restaurant-local table; loading validates IDs/references uniqueness and temporal consistency.
-- [ ] (C) 101. Tokens scope globally, map to existing user; loading validates token types/uniqueness/ownership and preserves multiple sessions.
-- [ ] (C) 102. Receipts scope user/method/path/key, refer to existing user and valid immutable response snapshots; loading validates bodies/responses and key constraints without requiring equality to subsequently changed bookings.
-- [ ] (C) 103. Batch moves requires auth/key; moves is 1..8 objects with distinct string references; invalid shape/duplicates give 422 validation_failed.
-- [ ] (C) 104. Every batch booking belongs to caller and same restaurant; unknown/other owner gives 404; different restaurants gives 422 validation_failed.
-- [ ] (C) 105. Batch accepts PATCH fields, retains omitted values, ignores unknown fields and preserves identity,owner,creation time.
-- [ ] (C) 106. Cancelled batch booking gives 409 reservation_cancelled; existing cutoff applies per booking.
-- [ ] (C) 107. Batch non-occupancy errors precede any occupancy conflict, in input order; cutoff precedes other changes for that booking.
-- [ ] (C) 108. Resulting bookings overlapping each other or unlisted confirmed bookings give 409 table_unavailable; unchanged items retain occupancy.
-- [ ] (C) 109. Batch commits all records/occupancy/receipt together or none; swaps supported.
-- [ ] (C) 110. Successful batch returns 201 reservations in input order including unchanged items; no-op items retain all values.
-- [ ] (C) 111. Batch replay gives 200 original response after changes/cancellation; exported/imported receipts preserve behavior.
-- [ ] (R) 112. Kickoff package, supplied tests and harness remain unmodified; install nothing into harness interpreter.
-- [ ] (R) 113. Independent checks cover every ledger line and full supplied harness without skips or deselection.
-- [ ] (R) 114. Harness isolated command must print claimed stage: 1; expected extra stage 2 failure recorded separately.
-- [ ] (R) 115. Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
-- [ ] (R) 116. Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability evidence.
+- [x] (C) 33. Signup returns 201 user_id, display_name and token.
+- [x] (C) 34. Signup duplicate email gives 409 email_taken.
+- [x] (C) 35. Password under eight characters and email outside local@domain give 422 validation_failed.
+- [x] (C) 36. Login returns 200 user_id, display_name, token; wrong password/unknown email gives 401 unauthenticated.
+- [x] (C) 37. Passwords stored only as password-function hashes, never plaintext.
+- [x] (C) 38. Missing/malformed/unknown bearer token gives 401 unauthenticated except booking visibility exception below.
+- [x] (C) 39. Tokens never expire and multiple tokens/concurrent sessions remain valid.
+- [x] (C) 40. Health, reset, signup, login, restaurant list/detail, availability, export and import are public.
+- [x] (C) 41. Other endpoints require bearer authentication; permitted-resource restrictions use specified 403/404 codes.
+- [x] (C) 42. Another guest and anonymous caller receive 404 not_found for someone else's booking; do not expose existence.
+- [x] (C) 43. Idempotency applies to POST reservations and POST reservation-moves.
+- [x] (C) 44. Receipt identity scopes user, method, path and key; different users do not interfere.
+- [x] (C) 45. Same key/body on another path is independent and succeeds normally.
+- [x] (C) 46. Resolve receipts after JSON-object parsing and authentication, before field/current-resource validation.
+- [x] (C) 47. Used key with different JSON body gives 409 idempotency_key_reuse even if new body invalid.
+- [x] (C) 48. First successful request returns 201; replay returns 200 identical original JSON response.
+- [x] (C) 49. JSON body comparison ignores whitespace and key order and preserves JSON value types.
+- [x] (C) 50. Failed 4xx requests do not consume keys; reuse is first use.
+- [x] (C) 51. Concurrent identical unused-key writes return exactly one 201 and others 200 identical bodies with one operation.
+- [x] (C) 52. Replay after amendment/cancellation returns original response without state changes.
+- [x] (C) 53. Restaurant list returns restaurants with id,name,timezone in fixture order.
+- [x] (C) 54. Restaurant detail returns full fixture-shaped configuration; unknown gives 404 not_found.
+- [x] (C) 55. Availability requires restaurant_id,date,party_size; missing gives 422 validation_failed.
+- [x] (C) 56. Availability date is valid local calendar date and party_size is positive integer query.
+- [x] (C) 57. Availability response includes restaurant_id,date,timezone and slots.
+- [x] (C) 58. Slots step from opening by slot_minutes and fit absolute duration within closing.
+- [x] (C) 59. Each slot has starts_at_local, offset starts_at, available_table_ids in fixture order.
+- [x] (C) 60. Available tables have capacity >= party_size and no overlapping confirmed reservation.
+- [x] (C) 61. Fully occupied slots still appear with empty table list; closed day returns empty slots.
+- [x] (C) 62. Create requires restaurant_id,table_id,starts_at_local,party_size and returns full documented reservation shape.
+- [x] (C) 63. Unknown restaurant/table or table outside restaurant gives 404 not_found.
+- [x] (C) 64. Occupancy uses restaurant plus table ID; table IDs may repeat in different restaurants.
+- [x] (C) 65. Confirmed occupancy is half-open absolute [start,start+duration); adjacent bookings do not overlap.
+- [x] (C) 66. Overlap gives 409 table_unavailable; two racing same-table/time requests have exactly one winner.
+- [x] (C) 67. Off-grid start gives 422 not_on_slot_grid measured from opening.
+- [x] (C) 68. Outside opening or ending after closing gives 422 outside_opening_hours.
+- [x] (C) 69. Party exceeding table capacity gives 422 party_exceeds_capacity.
+- [x] (C) 70. Nonexistent local time gives 422 invalid_local_time.
+- [x] (C) 71. Reference is globally unique, 6..12 A-Z0-9 characters, immutable across changes.
+- [x] (C) 72. Reservation ID is globally unique, immutable across changes; owner,restaurant and created_at preserved.
+- [x] (C) 73. Reservation list includes only caller's confirmed/cancelled bookings, starts_at descending, exact create shapes; empty list supported.
+- [x] (C) 74. Reference lookup returns own booking or 404 for absent/invisible booking.
+- [x] (C) 75. Cancel returns 200 full cancelled state and immediately frees occupancy.
+- [x] (C) 76. Repeat cancel returns same current state with 200 even after cutoff.
+- [x] (C) 77. Cancel at/within cutoff or after current start gives 409 cutoff_passed.
+- [x] (C) 78. PATCH accepts any subset table_id,starts_at_local,party_size; omitted fields retain values; no key required.
+- [x] (C) 79. PATCH uses create validation and current start cutoff; cancelled gives 409 reservation_cancelled.
+- [x] (C) 80. Successful PATCH releases/reserves together; failure preserves booking/occupancy.
+- [x] (C) 81. No-op amendment returns 200 retaining all values.
+- [x] (C) 82. Spring-gap times absent in availability and rejected on create/amend.
+- [x] (C) 83. Fall-fold times resolve first occurrence only, appear once, second occurrence not bookable.
+- [x] (C) 84. Duration arithmetic is absolute time; ends_at follows resulting local offset, including fold example.
+- [x] (C) 85. Berlin 2026-03-29 and 2026-10-25 transitions handled with IANA offsets.
+- [x] (C) 86. New York 2026-03-08 and 2026-11-01 transitions handled with IANA offsets.
+- [x] (C) 87. Export returns 200 object track tablekeeper, format_version integer 1, state object.
+- [x] (C) 88. Export is atomic read-only detached snapshot unaffected by later source writes.
+- [x] (C) 89. Import accepts unchanged service export across independent process/port/files/network; returns 204 atomically.
+- [x] (C) 90. Import replaces rather than merges and repeated import does not duplicate data.
+- [x] (C) 91. Invalid JSON import uses malformed_request; missing fields, wrong track/version or invalid state give 422 validation_failed without any changes.
+- [x] (C) 92. Another track export gives 422 validation_failed and preserves destination state.
+- [x] (C) 93. Import preserves accounts/password hashes, token validity, configuration, reservation identities/statuses/timestamps/references.
+- [x] (C) 94. Import preserves completed request bodies and original responses for create and moves; failed keys stay reusable.
+- [x] (C) 95. Import deletes all previous destination accounts/tokens/data; reset clears imported state.
+- [x] (C) 96. Reset fixtures and imported state validate all types, IDs, relations and booking rules, including confirmed overlaps.
+- [x] (C) 97. User IDs scope globally; emails uniquely identify accounts; loading validates unique IDs/emails and account field types.
+- [x] (C) 98. Restaurant IDs scope globally; loading validates uniqueness, timezone, policy and hours types/ranges.
+- [x] (C) 99. Table IDs scope within restaurant only; loading validates uniqueness within restaurant and capacity types/ranges.
+- [x] (C) 100. Reservations refer to existing user,restaurant and restaurant-local table; loading validates IDs/references uniqueness and temporal consistency.
+- [x] (C) 101. Tokens scope globally, map to existing user; loading validates token types/uniqueness/ownership and preserves multiple sessions.
+- [x] (C) 102. Receipts scope user/method/path/key, refer to existing user and valid immutable response snapshots; loading validates bodies/responses and key constraints without requiring equality to subsequently changed bookings.
+- [x] (C) 103. Batch moves requires auth/key; moves is 1..8 objects with distinct string references; invalid shape/duplicates give 422 validation_failed.
+- [x] (C) 104. Every batch booking belongs to caller and same restaurant; unknown/other owner gives 404; different restaurants gives 422 validation_failed.
+- [x] (C) 105. Batch accepts PATCH fields, retains omitted values, ignores unknown fields and preserves identity,owner,creation time.
+- [x] (C) 106. Cancelled batch booking gives 409 reservation_cancelled; existing cutoff applies per booking.
+- [x] (C) 107. Batch non-occupancy errors precede any occupancy conflict, in input order; cutoff precedes other changes for that booking.
+- [x] (C) 108. Resulting bookings overlapping each other or unlisted confirmed bookings give 409 table_unavailable; unchanged items retain occupancy.
+- [x] (C) 109. Batch commits all records/occupancy/receipt together or none; swaps supported.
+- [x] (C) 110. Successful batch returns 201 reservations in input order including unchanged items; no-op items retain all values.
+- [x] (C) 111. Batch replay gives 200 original response after changes/cancellation; exported/imported receipts preserve behavior.
+- [x] (R) 112. Kickoff package, supplied tests and harness remain unmodified; install nothing into harness interpreter.
+- [x] (R) 113. Independent checks cover every ledger line and full supplied harness without skips or deselection.
+- [x] (R) 114. Harness isolated command must print claimed stage: 1; expected extra stage 2 failure recorded separately.
+- [x] (R) 115. Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
+- [x] (R) 116. Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability evidence.
