@@ -218,6 +218,28 @@ class Transfer(Populated):
         blocked = dict(self.create_body, table_id=cur["table_id"], starts_at_local=cur["starts_at_local"])
         self.err(d.call("POST", "/reservations", blocked, token=self.t_bob, key="fresh-a"), 409, "table_unavailable")
 
+    def test_L021_L093_short_password_accounts_survive_export_import(self):
+        f = fixture()
+        f["users"][0]["password"] = "abc"
+        f["users"][1]["password"] = "x"
+        self.reset(f)
+        tok = self.api.call("POST", "/auth/login", {"email": "ada@example.com", "password": "abc"}).json["token"]
+        exp = self.export()
+        d = self.dst
+        d.call("POST", "/_test/reset", {"users": [], "restaurants": [], "reservations": []})
+        self.assertEqual(d.call("POST", "/_test/import", exp).status, 204)
+        for email, pw in (("ada@example.com", "abc"), ("bob@example.com", "x")):
+            r = d.call("POST", "/auth/login", {"email": email, "password": pw})
+            self.assertEqual(r.status, 200, (email, r))
+        self.err(d.call("POST", "/auth/login", {"email": "ada@example.com", "password": "abcd"}), 401, "unauthenticated")
+        self.assertEqual(d.call("GET", "/reservations", token=tok).status, 200)      # old token still valid
+        self.assertNotIn('"abc"', json.dumps(exp["state"]).replace('\\"', ""), "plaintext short password in export")
+        # and a second hop: export from the destination, import back into the source
+        back = d.call("GET", "/_test/export").json
+        self.reset()
+        self.assertEqual(self.api.call("POST", "/_test/import", back).status, 204)
+        self.assertEqual(self.api.call("POST", "/auth/login", {"email": "bob@example.com", "password": "x"}).status, 200)
+
     def test_L090_import_replaces_not_merges_and_repeats(self):
         self.populate()
         exp = self.export()

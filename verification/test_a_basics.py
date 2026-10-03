@@ -301,6 +301,27 @@ class Auth(Base):
         self.assertTrue(all(o.status == 200 for o in outs))
         self.assertEqual(len({o.json["token"] for o in outs}), 20)
 
+    def test_L021_L035_fixture_short_passwords_log_in_signup_keeps_minimum(self):
+        f = fixture()
+        for u, pw in zip(f["users"], ("abc", "x")):
+            u["password"] = pw
+        f["users"].append({"id": "u_seven", "email": "seven@example.com", "password": "1234567", "display_name": "S"})
+        f["users"].append({"id": "u_uni", "email": "uni@example.com", "password": "é", "display_name": "U"})
+        self.reset(f)
+        for email, pw, uid in (("ada@example.com", "abc", "u_ada"), ("bob@example.com", "x", "u_bob"),
+                               ("seven@example.com", "1234567", "u_seven"), ("uni@example.com", "é", "u_uni")):
+            r = self.api.call("POST", "/auth/login", {"email": email, "password": pw})
+            self.assertEqual(r.status, 200, (email, r))
+            self.assertEqual(r.json["user_id"], uid)
+            self.assertEqual(self.api.call("GET", "/reservations", token=r.json["token"]).status, 200)
+        self.err(self.api.call("POST", "/auth/login", {"email": "ada@example.com", "password": "abcd"}), 401, "unauthenticated")
+        self.err(self.api.call("POST", "/auth/login", {"email": "ada@example.com", "password": "ab"}), 401, "unauthenticated")
+        # signup keeps the eight-character minimum
+        base = {"email": "fresh@example.com", "display_name": "F"}
+        self.err(self.api.call("POST", "/auth/signup", dict(base, password="abc")), 422, "validation_failed")
+        self.err(self.api.call("POST", "/auth/signup", dict(base, password="1234567")), 422, "validation_failed")
+        self.assertEqual(self.api.call("POST", "/auth/signup", dict(base, password="12345678")).status, 201)
+
     def test_L034_concurrent_signup_same_email(self):
         outs = self.burst([lambda: self.api.call("POST", "/auth/signup", {"email": "race@x.y",
                                                                            "password": "12345678",
