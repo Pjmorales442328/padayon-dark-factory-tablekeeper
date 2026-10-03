@@ -1,0 +1,122 @@
+# Core-builder Stage 1 notes
+
+Requirement source: handoffs/requirements-stage-1.md
+Dispatch revision: 32628cdcc4b81583e8074ad39e9e0bdf32e379cb
+
+Initial restructuring: no source files exist in copied repository; no behavior to restructure or earlier checks to rerun.
+- [ ] 1. Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
+- [ ] 2. Complete buildable stage-1 folder contains Dockerfile, RUN.md and every runtime asset; no nested .git.
+- [ ] 3. Python implementation builds from clean checkout and starts with documented command without manual setup.
+- [ ] 4. Listen on 0.0.0.0, PORT environment variable, default 8080.
+- [ ] 5. Runtime has no outbound network and requires no external service or Compose.
+- [ ] 6. Operate within 2 CPUs and 2 GiB.
+- [ ] 7. Health becomes 200 {status:ok} within 60 seconds when store is usable.
+- [ ] 8. Support 50 in-flight requests without 5xx.
+- [ ] 9. Requests finish within 5 seconds; reset and test control calls within 10 seconds.
+- [ ] 10. State may be ephemeral across container restart.
+- [ ] 11. JSON responses use application/json; charset=utf-8; timestamps are RFC3339 with explicit offset.
+- [ ] 12. Unknown body fields and query parameters are ignored.
+- [ ] 13. Every identifier is an opaque string at most 64 characters, including fixture IDs.
+- [ ] 14. Reset is unauthenticated, enabled, returns 204 and atomically replaces all state.
+- [ ] 15. Repeated reset removes prior accounts, sessions, reservations, receipts and imported state.
+- [ ] 16. Restaurant and table configuration comes only from reset; no creation APIs required.
+- [ ] 17. Restaurant timezone is valid IANA zone; slot and duration minutes are positive integers; cutoff is nonnegative integer.
+- [ ] 18. Opening weekdays are mon through sun; missing weekday is closed.
+- [ ] 19. Opening times are valid HH:MM with closes later on same day; no overnight opening.
+- [ ] 20. Table capacities are positive integers; booleans never count as integers.
+- [ ] 21. Seed users log in immediately with supplied password.
+- [ ] 22. Seed reservations use create fields plus id, reference, user_id and are confirmed.
+- [ ] 23. Past booking dates alone never cause rejection; cutoff still applies.
+- [ ] 24. Every error uses {error:{code,message}} with specified status/code and human readable message.
+- [ ] 25. Unparseable JSON, empty request body, non-object request body and ordinary wrong body field types give 400 malformed_request.
+- [ ] 26. Numeric starts_at_local gives 400 malformed_request.
+- [ ] 27. Missing required fields and valid-type invalid formats/ranges give 422 validation_failed unless specific code applies.
+- [ ] 28. Invalid party_size including string, boolean, fraction, zero and negative gives 422 validation_failed.
+- [ ] 29. starts_at_local strings must be bare YYYY-MM-DDTHH:MM; offsets, Z, seconds and invalid dates give 422 validation_failed.
+- [ ] 30. Integer query parameters accept plain decimal digits only; 1e9, 4.0 and +4 give 422 validation_failed.
+- [ ] 31. Required absent/empty idempotency header gives 400 missing_idempotency_key; length over 255 gives 422 validation_failed.
+- [ ] 32. No request produces a 5xx, including malformed input and concurrent load.
+- [ ] 33. Signup returns 201 user_id, display_name and token.
+- [ ] 34. Signup duplicate email gives 409 email_taken.
+- [ ] 35. Password under eight characters and email outside local@domain give 422 validation_failed.
+- [ ] 36. Login returns 200 user_id, display_name, token; wrong password/unknown email gives 401 unauthenticated.
+- [ ] 37. Passwords stored only as password-function hashes, never plaintext.
+- [ ] 38. Missing/malformed/unknown bearer token gives 401 unauthenticated except booking visibility exception below.
+- [ ] 39. Tokens never expire and multiple tokens/concurrent sessions remain valid.
+- [ ] 40. Health, reset, signup, login, restaurant list/detail, availability, export and import are public.
+- [ ] 41. Other endpoints require bearer authentication; permitted-resource restrictions use specified 403/404 codes.
+- [ ] 42. Another guest and anonymous caller receive 404 not_found for someone else's booking; do not expose existence.
+- [ ] 43. Idempotency applies to POST reservations and POST reservation-moves.
+- [ ] 44. Receipt identity scopes user, method, path and key; different users do not interfere.
+- [ ] 45. Same key/body on another path is independent and succeeds normally.
+- [ ] 46. Resolve receipts after JSON-object parsing and authentication, before field/current-resource validation.
+- [ ] 47. Used key with different JSON body gives 409 idempotency_key_reuse even if new body invalid.
+- [ ] 48. First successful request returns 201; replay returns 200 identical original JSON response.
+- [ ] 49. JSON body comparison ignores whitespace and key order and preserves JSON value types.
+- [ ] 50. Failed 4xx requests do not consume keys; reuse is first use.
+- [ ] 51. Concurrent identical unused-key writes return exactly one 201 and others 200 identical bodies with one operation.
+- [ ] 52. Replay after amendment/cancellation returns original response without state changes.
+- [ ] 53. Restaurant list returns restaurants with id,name,timezone in fixture order.
+- [ ] 54. Restaurant detail returns full fixture-shaped configuration; unknown gives 404 not_found.
+- [ ] 55. Availability requires restaurant_id,date,party_size; missing gives 422 validation_failed.
+- [ ] 56. Availability date is valid local calendar date and party_size is positive integer query.
+- [ ] 57. Availability response includes restaurant_id,date,timezone and slots.
+- [ ] 58. Slots step from opening by slot_minutes and fit absolute duration within closing.
+- [ ] 59. Each slot has starts_at_local, offset starts_at, available_table_ids in fixture order.
+- [ ] 60. Available tables have capacity >= party_size and no overlapping confirmed reservation.
+- [ ] 61. Fully occupied slots still appear with empty table list; closed day returns empty slots.
+- [ ] 62. Create requires restaurant_id,table_id,starts_at_local,party_size and returns full documented reservation shape.
+- [ ] 63. Unknown restaurant/table or table outside restaurant gives 404 not_found.
+- [ ] 64. Occupancy uses restaurant plus table ID; table IDs may repeat in different restaurants.
+- [ ] 65. Confirmed occupancy is half-open absolute [start,start+duration); adjacent bookings do not overlap.
+- [ ] 66. Overlap gives 409 table_unavailable; two racing same-table/time requests have exactly one winner.
+- [ ] 67. Off-grid start gives 422 not_on_slot_grid measured from opening.
+- [ ] 68. Outside opening or ending after closing gives 422 outside_opening_hours.
+- [ ] 69. Party exceeding table capacity gives 422 party_exceeds_capacity.
+- [ ] 70. Nonexistent local time gives 422 invalid_local_time.
+- [ ] 71. Reference is globally unique, 6..12 A-Z0-9 characters, immutable across changes.
+- [ ] 72. Reservation ID is globally unique, immutable across changes; owner,restaurant and created_at preserved.
+- [ ] 73. Reservation list includes only caller's confirmed/cancelled bookings, starts_at descending, exact create shapes; empty list supported.
+- [ ] 74. Reference lookup returns own booking or 404 for absent/invisible booking.
+- [ ] 75. Cancel returns 200 full cancelled state and immediately frees occupancy.
+- [ ] 76. Repeat cancel returns same current state with 200 even after cutoff.
+- [ ] 77. Cancel at/within cutoff or after current start gives 409 cutoff_passed.
+- [ ] 78. PATCH accepts any subset table_id,starts_at_local,party_size; omitted fields retain values; no key required.
+- [ ] 79. PATCH uses create validation and current start cutoff; cancelled gives 409 reservation_cancelled.
+- [ ] 80. Successful PATCH releases/reserves together; failure preserves booking/occupancy.
+- [ ] 81. No-op amendment returns 200 retaining all values.
+- [ ] 82. Spring-gap times absent in availability and rejected on create/amend.
+- [ ] 83. Fall-fold times resolve first occurrence only, appear once, second occurrence not bookable.
+- [ ] 84. Duration arithmetic is absolute time; ends_at follows resulting local offset, including fold example.
+- [ ] 85. Berlin 2026-03-29 and 2026-10-25 transitions handled with IANA offsets.
+- [ ] 86. New York 2026-03-08 and 2026-11-01 transitions handled with IANA offsets.
+- [ ] 87. Export returns 200 object track tablekeeper, format_version integer 1, state object.
+- [ ] 88. Export is atomic read-only detached snapshot unaffected by later source writes.
+- [ ] 89. Import accepts unchanged service export across independent process/port/files/network; returns 204 atomically.
+- [ ] 90. Import replaces rather than merges and repeated import does not duplicate data.
+- [ ] 91. Invalid JSON import uses malformed_request; missing fields, wrong track/version or invalid state give 422 validation_failed without any changes.
+- [ ] 92. Another track export gives 422 validation_failed and preserves destination state.
+- [ ] 93. Import preserves accounts/password hashes, token validity, configuration, reservation identities/statuses/timestamps/references.
+- [ ] 94. Import preserves completed request bodies and original responses for create and moves; failed keys stay reusable.
+- [ ] 95. Import deletes all previous destination accounts/tokens/data; reset clears imported state.
+- [ ] 96. Reset fixtures and imported state validate all types, IDs, relations and booking rules, including confirmed overlaps.
+- [ ] 97. User IDs scope globally; emails uniquely identify accounts; loading validates unique IDs/emails and account field types.
+- [ ] 98. Restaurant IDs scope globally; loading validates uniqueness, timezone, policy and hours types/ranges.
+- [ ] 99. Table IDs scope within restaurant only; loading validates uniqueness within restaurant and capacity types/ranges.
+- [ ] 100. Reservations refer to existing user,restaurant and restaurant-local table; loading validates IDs/references uniqueness and temporal consistency.
+- [ ] 101. Tokens scope globally, map to existing user; loading validates token types/uniqueness/ownership and preserves multiple sessions.
+- [ ] 102. Receipts scope user/method/path/key, refer to existing user and valid immutable response snapshots; loading validates bodies/responses and key constraints without requiring equality to subsequently changed bookings.
+- [ ] 103. Batch moves requires auth/key; moves is 1..8 objects with distinct string references; invalid shape/duplicates give 422 validation_failed.
+- [ ] 104. Every batch booking belongs to caller and same restaurant; unknown/other owner gives 404; different restaurants gives 422 validation_failed.
+- [ ] 105. Batch accepts PATCH fields, retains omitted values, ignores unknown fields and preserves identity,owner,creation time.
+- [ ] 106. Cancelled batch booking gives 409 reservation_cancelled; existing cutoff applies per booking.
+- [ ] 107. Batch non-occupancy errors precede any occupancy conflict, in input order; cutoff precedes other changes for that booking.
+- [ ] 108. Resulting bookings overlapping each other or unlisted confirmed bookings give 409 table_unavailable; unchanged items retain occupancy.
+- [ ] 109. Batch commits all records/occupancy/receipt together or none; swaps supported.
+- [ ] 110. Successful batch returns 201 reservations in input order including unchanged items; no-op items retain all values.
+- [ ] 111. Batch replay gives 200 original response after changes/cancellation; exported/imported receipts preserve behavior.
+- [ ] 112. Kickoff package, supplied tests and harness remain unmodified; install nothing into harness interpreter.
+- [ ] 113. Independent checks cover every ledger line and full supplied harness without skips or deselection.
+- [ ] 114. Harness isolated command must print claimed stage: 1; expected extra stage 2 failure recorded separately.
+- [ ] 115. Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
+- [ ] 116. Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability evidence.
