@@ -9,7 +9,14 @@ Current gate: behavior-preserving restructuring only; no Stage 2 feature behavio
 
 ## Stage 2 restructuring notes
 
-The copied stage-2 transport and packaging baseline will be inspected against the frozen stage-1 files. Only interface-owned copied paths may change. New browser routes, assets, dependencies, and API behavior remain gated.
+The copied stage-2 transport and packaging baseline was inspected against frozen
+stage-1. `server.py`, `Dockerfile`, `requirements.txt`, and `.dockerignore` are byte
+identical to stage-1. The transport already owns HTTP parsing/serialization and calls
+the separate `tablekeeper.service.Service`, so a code refactor would add risk without
+improving the existing boundary. `RUN.md` was updated only to name the Stage 2 folder,
+image, and container. No browser route, asset, dependency, or API behavior was added.
+
+Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2a85d2 -- stage-1` returned success; the stage-1 tree is byte-identical to the accepted revision.
 
 ## Numbered requirement checklist
 
