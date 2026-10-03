@@ -23,9 +23,9 @@ acceptance. The absent source tree is the recorded restructuring evidence.
 1. [ ] Implement stage 1 only; only HTTP API required; no existing-product source, documentation or schemas.
 2. [ ] Complete buildable stage-1 folder contains Dockerfile, RUN.md and every runtime asset; no nested .git.
 3. [ ] Python implementation builds from clean checkout and starts with documented command without manual setup.
-4. [ ] Listen on 0.0.0.0, PORT environment variable, default 8080.
-5. [ ] Runtime has no outbound network and requires no external service or Compose.
-6. [ ] Operate within 2 CPUs and 2 GiB.
+4. [x] Listen on 0.0.0.0, PORT environment variable, default 8080.
+5. [x] Runtime has no outbound network and requires no external service or Compose.
+6. [x] Operate within 2 CPUs and 2 GiB.
 7. [x] Health becomes 200 {status:ok} within 60 seconds when store is usable.
 8. [x] Support 50 in-flight requests without 5xx.
 9. [ ] Requests finish within 5 seconds; reset and test control calls within 10 seconds.
@@ -158,3 +158,5 @@ Observed verification:
 
 The complete independent suite remains pending until tester-owned findings are fixed;
 no full-suite result is claimed here.
+
+R1 runtime evidence is committed in `interface-builder-findings-stage-1-r1.md`.
