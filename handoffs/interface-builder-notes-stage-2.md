@@ -23,10 +23,10 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 1. [ ] Implement stage 2 only, with inherited stage 1 API and new browser UI; no existing-product source/documentation/schemas.
 2. [ ] Complete buildable stage-2 folder copied forward from frozen stage-1, containing Dockerfile, RUN.md and every runtime asset; no nested .git.
 3. [ ] Python implementation builds from clean checkout and starts with documented command without manual setup.
-4. [ ] Listen on 0.0.0.0, PORT environment variable, default 8080.
-5. [ ] Runtime has no outbound network and requires no external service or Compose.
-6. [ ] Operate within 2 CPUs and 2 GiB.
-7. [ ] Health becomes 200 {status:ok} within 60 seconds when store is usable.
+4. [x] Listen on 0.0.0.0, PORT environment variable, default 8080.
+5. [x] Runtime has no outbound network and requires no external service or Compose.
+6. [x] Operate within 2 CPUs and 2 GiB.
+7. [x] Health becomes 200 {status:ok} within 60 seconds when store is usable.
 8. [ ] Support 50 in-flight requests without 5xx.
 9. [ ] Requests finish within 5 seconds; reset and test control calls within 10 seconds.
 10. [ ] State may be ephemeral across container restart.
@@ -217,3 +217,14 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 195. [ ] Run inherited stage1 behavioral checks against stage2, new stage2 API/UI checks and full supplied isolated harness without skipping/deselecting/editing supplied checks.
 196. [ ] Measure maintainability against frozen stage1 baseline (radon/lizard plus observed limits), record figures and unresolved duplication-tool limits.
 197. [ ] Final stage2 report includes exact accepted/final revisions,all seat contributions,harness claim/report path,every rejection/change,start/end/time,maintainability and open limitations.
+
+## Baseline verification after the copied transport commit
+
+Restructuring/source commit: `2781da0c3ca622a20f7a5663f6e986f1f53027fe`.
+
+- `docker build --no-cache -t tablekeeper:stage-2 .\\stage-2`: passed and tagged `tablekeeper:stage-2`.
+- Port-published run with `--cpus=2 --memory=2g -e PORT=8080`: `GET /health` returned HTTP 200 `{"status": "ok"}` and `GET /restaurants` returned HTTP 200 `{"restaurants": []}`. Both responses had `application/json; charset=utf-8`.
+- Network-isolated run used `--network none --cpus=2 --memory=2g` with `PORT` unset. `docker inspect` reported `none|2000000000|2147483648`; internal `/health` returned HTTP 200, the external TCP probe returned `connect_ex=101` (network unreachable), and Docker reported 0.01% CPU / 14.5 MiB of 2 GiB.
+- Rechecked `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2a85d2 -- stage-1`: success; frozen Stage 1 remains unchanged.
+
+This baseline check covers build/start, the health and restaurant routes, and constrained/no-network operation. The Stage 2 gate remains closed until the coordinator confirms both builder baselines; no new Stage 2 behavior or UI was added.
