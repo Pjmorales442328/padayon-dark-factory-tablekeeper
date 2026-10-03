@@ -209,3 +209,7 @@ Known inherited runner limitations: manifest has pre-existing mismatches; Stage 
 
 Baseline completed: 51ff2cba48f15d65ad9177fc84afbebbf18c8d34; supplied inherited Stage 1 suite 120/120 with zero failures/skips/deselections; full inherited independent suite 189 tests,187 passed,2 documented non-domain failures,0 errors/skips. Frozen stage-1 diff empty. Domain-only radon average 2.7551 ->2.7071,max9 unchanged; lizard average2.6824 ->2.6279,max9 unchanged; NLOC619 ->618; largest owned file loading.py133 lines. No Stage2 feature gate released; all addition items remain pending.
 
+
+Feature release f854261b07c28e247ba7a2bfc6ee74b1af599936 received; gate released07:39:00+08:00.
+Interface explicitly agreed committed contract177e213.
+Feature subtasks: selections/configuration; every-member occupancy/options; amend/batch no-op retention; legacy/current state and immutable snapshots; integrated independent/supplied checks; metrics/handoff.

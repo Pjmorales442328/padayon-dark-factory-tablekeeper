@@ -29,6 +29,23 @@ def restaurant_record(data):
     result["tables"] = [table_record(t) for t in result["tables"]]
     unique(result["opening_hours"], "weekday")
     unique(result["tables"], "id")
+    if "combinable" in data:
+        result["combinable"] = combinations(data["combinable"], result)
+    return result
+
+
+def combinations(value, config):
+    result = []
+    seen = set()
+    for entry in array(value):
+        pair = [identifier(member) for member in array(entry)]
+        require(len(pair) == 2 and len(set(pair)) == 2, "Expected distinct pair members")
+        for member in pair:
+            table(config, member)
+        identity = frozenset(pair)
+        require(identity not in seen, "Duplicate unordered pair")
+        seen.add(identity)
+        result.append(pair)
     return result
 
 

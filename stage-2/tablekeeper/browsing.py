@@ -5,6 +5,7 @@ from .validation import fields, identifier, text, decimal, require, Failure, tim
 from .restaurants import restaurant
 from .bookings import overlaps, view
 from .times import slots
+from .selections import selection_fields
 
 
 def date_value(value):
@@ -23,18 +24,28 @@ def availability(state, query):
     result = []
     for value, start, end in slots(config, parsed["date"]):
         candidate = {"restaurant_id": config["id"], "starts_at": start, "ends_at": end}
-        tables = available_tables(config, candidate, parsed["party_size"], occupied)
-        result.append({"starts_at_local": value, "starts_at": start, "available_table_ids": tables})
+        options = available_options(config, candidate, parsed["party_size"], occupied)
+        tables = [o["table_ids"][0] for o in options if len(o["table_ids"]) == 1]
+        result.append({"starts_at_local": value, "starts_at": start, "available_table_ids": tables,
+                       "available_options": options})
     return 200, {"restaurant_id": config["id"], "date": query["date"],
                  "timezone": config["timezone"], "slots": result}
 
 
-def available_tables(config, candidate, size, occupied):
+def seating_options(config):
+    result = [{"table_ids": [t["id"]], "capacity": t["capacity"]} for t in config["tables"]]
+    capacities = {t["id"]: t["capacity"] for t in config["tables"]}
+    result.extend({"table_ids": list(pair), "capacity": sum(capacities[t] for t in pair)}
+                  for pair in config.get("combinable", []))
+    return result
+
+
+def available_options(config, candidate, size, occupied):
     result = []
-    for table in config["tables"]:
-        booking = {**candidate, "table_id": table["id"]}
-        if table["capacity"] >= size and not any(overlaps(booking, r) for r in occupied):
-            result.append(table["id"])
+    for option in seating_options(config):
+        booking = {**candidate, **selection_fields(option["table_ids"])}
+        if option["capacity"] >= size and not any(overlaps(booking, r) for r in occupied):
+            result.append(option)
     return result
 
 

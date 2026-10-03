@@ -6,7 +6,9 @@ from .validation import (Failure, fields, array, identifier, reference, text, re
 from .accounts import user_record
 from .restaurants import restaurant_record
 from .bookings import values, occupancy
-from .receipts import receipt_record, record_identity
+from .receipts import record_identity
+from .selections import stored_body
+from .snapshots import validate_receipt
 from .times import UTC
 
 
@@ -21,11 +23,18 @@ def booking_record(state, data, importing=False):
     if not importing:
         identity["reservation_id"] = identity.pop("id")
     require(any(u["id"] == identity["user_id"] for u in state["users"]), "Unknown user")
-    record = {**values(state, data), **identity, "status": "confirmed",
+    body = stored_body(data) if importing else data
+    record = {**values(state, body), **identity, "status": seed_status(data),
               "created_at": datetime.now(UTC).isoformat()}
     if importing:
         preserve_record(record, data)
     return record
+
+
+def seed_status(data):
+    value = text(data.get("status", "confirmed"))
+    require(value in ("confirmed", "cancelled"), "Invalid reservation status")
+    return value
 
 
 def preserve_record(record, data):
@@ -60,53 +69,6 @@ def tokens_record(state, tokens):
         identifier(user)
         require(user in users, "Token refers to unknown user")
     return deepcopy(tokens)
-
-
-def snapshot_response(state, data, user):
-    require(isinstance(data, dict), "Invalid response snapshot")
-    full = {**data, "user_id": user}
-    require(data.get("status") == "confirmed", "Receipt must snapshot a confirmed booking")
-    booking = booking_record(state, full, True)
-    actual = next((r for r in state["reservations"]
-                   if r["reservation_id"] == booking["reservation_id"]), None)
-    require(actual is not None, "Receipt refers to unknown booking")
-    immutable = ("user_id", "reference", "restaurant_id", "created_at")
-    require(all(actual[k] == booking[k] for k in immutable), "Invalid receipt identity")
-    require(set(data) == set(booking) - {"user_id"}, "Invalid snapshot fields")
-    return booking
-
-
-def validate_receipt(state, data):
-    receipt = receipt_record(data)
-    user = receipt["user_id"]
-    require(any(u["id"] == user for u in state["users"]), "Receipt user missing")
-    if receipt["path"] == "/reservations":
-        snapshot_response(state, receipt["response"], user)
-        body_values = values(state, receipt["body"])
-        require(all(receipt["response"][k] == v for k, v in body_values.items()),
-                "Receipt body inconsistent with response")
-    else:
-        validate_move_receipt(state, receipt)
-    return receipt
-
-
-def validate_move_receipt(state, receipt):
-    from .moves import move_items
-    items = move_items(receipt["body"])
-    response = receipt["response"]
-    require(set(response) == {"reservations"}, "Invalid batch snapshot")
-    snapshots = array(response["reservations"])
-    require(len(items) == len(snapshots), "Batch snapshot size mismatch")
-    bookings = []
-    for item, snapshot in zip(items, snapshots):
-        booking = snapshot_response(state, snapshot, receipt["user_id"])
-        require(item["reference"] == booking["reference"], "Batch reference mismatch")
-        requested = {k: v for k, v in item.items() if k in ("table_id", "party_size", "starts_at_local")}
-        require(all(type(booking[k]) is type(v) and booking[k] == v for k, v in requested.items()),
-                "Batch body inconsistent with response")
-        bookings.append(booking)
-    require(len({b["restaurant_id"] for b in bookings}) == 1, "Batch spans restaurants")
-    occupancy(empty(), bookings)
 
 
 def loaded(data, importing=False):

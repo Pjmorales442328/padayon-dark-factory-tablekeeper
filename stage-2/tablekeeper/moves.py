@@ -30,5 +30,6 @@ def move(state, body, user):
         candidates.append(candidate)
     occupancy(state, candidates, [r["reference"] for r in originals])
     for original, candidate in zip(originals, candidates):
+        original.clear()
         original.update(candidate)
     return 201, {"reservations": [view(r) for r in candidates]}
