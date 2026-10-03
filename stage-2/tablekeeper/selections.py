@@ -16,8 +16,8 @@ def selected(body):
         return [identifier(body["table_id"])]
     ids = [identifier(value) for value in array(body["table_ids"])]
     require(len(ids) > 0, "Empty table selection")
-    require(len(set(ids)) == len(ids), "Duplicate selected table")
     require(len(ids) <= 2, "Only pairs may be combined", 422, "combination_not_allowed")
+    require(len(set(ids)) == len(ids), "Duplicate selected table")
     return ids
 
 
