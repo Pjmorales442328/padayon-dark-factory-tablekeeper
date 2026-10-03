@@ -20,6 +20,7 @@ class TablekeeperHTTPServer(ThreadingHTTPServer):
 
     daemon_threads = True
     allow_reuse_address = True
+    request_queue_size = 128
 
     def __init__(self, address: tuple[str, int], service: Service) -> None:
         super().__init__(address, RequestHandler)

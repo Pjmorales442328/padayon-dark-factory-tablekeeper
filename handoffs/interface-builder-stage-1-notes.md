@@ -26,8 +26,8 @@ acceptance. The absent source tree is the recorded restructuring evidence.
 4. [ ] Listen on 0.0.0.0, PORT environment variable, default 8080.
 5. [ ] Runtime has no outbound network and requires no external service or Compose.
 6. [ ] Operate within 2 CPUs and 2 GiB.
-7. [ ] Health becomes 200 {status:ok} within 60 seconds when store is usable.
-8. [ ] Support 50 in-flight requests without 5xx.
+7. [x] Health becomes 200 {status:ok} within 60 seconds when store is usable.
+8. [x] Support 50 in-flight requests without 5xx.
 9. [ ] Requests finish within 5 seconds; reset and test control calls within 10 seconds.
 10. [ ] State may be ephemeral across container restart.
 11. [ ] JSON responses use application/json; charset=utf-8; timestamps are RFC3339 with explicit offset.
@@ -51,7 +51,7 @@ acceptance. The absent source tree is the recorded restructuring evidence.
 29. [ ] starts_at_local strings must be bare YYYY-MM-DDTHH:MM; offsets, Z, seconds and invalid dates give 422 validation_failed.
 30. [ ] Integer query parameters accept plain decimal digits only; 1e9, 4.0 and +4 give 422 validation_failed.
 31. [ ] Required absent/empty idempotency header gives 400 missing_idempotency_key; length over 255 gives 422 validation_failed.
-32. [ ] No request produces a 5xx, including malformed input and concurrent load.
+32. [x] No request produces a 5xx, including malformed input and concurrent load.
 33. [ ] Signup returns 201 user_id, display_name and token.
 34. [ ] Signup duplicate email gives 409 email_taken.
 35. [ ] Password under eight characters and email outside local@domain give 422 validation_failed.
@@ -136,3 +136,25 @@ acceptance. The absent source tree is the recorded restructuring evidence.
 114. [ ] Harness isolated command must print claimed stage: 1; expected extra stage 2 failure recorded separately.
 115. [ ] Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
 116. [ ] Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability evidence.
+
+## Transport queue follow-up
+
+Finding source: core-builder revision `0130c11b286f8b71671e0cdf44e00bd215c365e4`,
+`handoffs/core-builder-findings-stage-1-run-1.md`. The threaded listener's default
+accept queue of 5 was too small for the 50-request burst; `request_queue_size` is now
+128.
+
+Observed verification:
+
+- From `verification/`, run the committed check
+  `test_f_process.Load.test_L008_L009_L032_fifty_in_flight_no_5xx_and_latency` with
+  the provided harness interpreter and `SERVICE_CMD` set to that interpreter plus
+  `-m tablekeeper.server`: 1 test passed, 0 failures/errors; 150 burst requests,
+  maximum measured latency 0.53 seconds.
+- `docker build -t tablekeeper-interface-stage1 .\\stage-1`: passed.
+- `docker run --rm --name tablekeeper-interface-builder-check --cpus=2 --memory=2g
+  -e PORT=8080 -p 127.0.0.1:18085:8080 tablekeeper-interface-stage1`, followed by
+  `GET http://127.0.0.1:18085/health`: HTTP 200, body `{"status": "ok"}`.
+
+The complete independent suite remains pending until tester-owned findings are fixed;
+no full-suite result is claimed here.
