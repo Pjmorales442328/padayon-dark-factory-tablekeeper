@@ -8,4 +8,6 @@ Restructuring gate released 2026-10-04T07:39:00+08:00: core restructure51ff2cba4
 R1 opened2026-10-04T07:50:00+08:00,owner tester: seven disputed check/setup findings T1–T7 in core-builder-findings-stage-2-run-1.md at11997585c60f94b0b060a2879899ff1db7eb84c6. Routed unchanged by committed evidence path/revision; tester must verify each against spec,correct only confirmed defects,and prove reliable stopped-source import. Closure pending. Incomplete interface/evidence I1–I4 separately pending integrated candidate.
 Acceptance/freeze: pending.
 
+R1 closed: 2026-10-04T07:53:34+08:00, actual opening2026-10-04T07:49:16+08:00, elapsed258s. Complete single closure record stage-2-r1-closure.md; corrections/findings d4ffa21632bd21b6a8e5931b50b9c2b56adbdcba. Core scoped accepted567c3f5eac2610b18dd9085dcacf1943fdd7ffde; integrated UI/harness still pending.
+
 Interface baseline revision correction: b5f6f729bc4f6b59a8b6e71c814af579c8a3a6a8 is the actual existing report revision; b5f6b729 in the original release text was a transcription error. Scoped interface baseline accepted at reviewer revision3e3c113ee858d89e6cc56e8cc48dd8e7af4b0134. No feature rejection or source change.
