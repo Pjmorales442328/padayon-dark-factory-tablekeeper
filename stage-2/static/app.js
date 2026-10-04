@@ -85,8 +85,8 @@ function searchFromInputs(preserveForm) {
     showMessage(document.querySelector("#home-feedback"), "booking-uncertain", "");
   }
   const query = { restaurant_id: restaurantId, date, party_size: String(partySize) };
-  runSearch(query, preserveForm).catch(error => {
-    showMessage(document.querySelector("#home-feedback"), "search-error", error.message);
+  runSearch(query, preserveForm).catch(() => {
+    showMessage(document.querySelector("#home-feedback"), "search-error", "We couldn't load availability. Please try again.");
     document.querySelector("#availability-area").replaceChildren();
   });
 }

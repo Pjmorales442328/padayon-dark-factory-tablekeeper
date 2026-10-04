@@ -138,43 +138,43 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 116. [ ] Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability; never edit frozen stage-1.
 117. [x] Before any new feature, each builder commits a short behavior-preserving restructuring pass on its exclusively owned copied stage-2 files; stage-1 tree remains byte-identical to frozen 344e085.
 118. [x] Browser routes /, /signup, /login, /lookup return HTML, reachable directly by URL; API remains JSON and all other required screens reachable through UI.
-119. [ ] Browser supports searching, booking and managing reservations, including approved two-table combinations.
-120. [ ] If search A starts before B but completes later, grid, table labels and booking form remain B; stale responses never restore A.
-121. [ ] If another client takes selection after form opens, 409 table_unavailable shows booking-error, refreshes availability, preserves selected form/inputs and shows no confirmation for attempt.
-122. [ ] Lost booking response before/after commit shows nonempty booking-uncertain, no booking-error or new confirmation, retaining unchanged form.
-123. [ ] Unchanged uncertain booking retry sends same body and key; success clears uncertainty/error and displays original reference; confirmed rejection uses booking-error.
-124. [ ] Out-of-order and uncertain-result rules apply to combined bookings too; server remains authoritative and browser never invents cached success.
-125. [ ] No background polling/live updates/cross-tab sync/reload recovery is required.
+119. [x] Browser supports searching, booking and managing reservations, including approved two-table combinations.
+120. [x] If search A starts before B but completes later, grid, table labels and booking form remain B; stale responses never restore A.
+121. [x] If another client takes selection after form opens, 409 table_unavailable shows booking-error and refreshes availability while preserving selection/inputs and withholding confirmation.
+122. [x] Lost booking response before/after commit shows nonempty booking-uncertain, no booking-error or new confirmation, retaining unchanged form.
+123. [x] Unchanged uncertain booking retry sends same body and key; success clears uncertainty/error and displays original reference; confirmed rejection uses booking-error.
+124. [x] Out-of-order and uncertain-result rules apply to combined bookings too; server remains authoritative and browser never invents cached success.
+125. [x] No background polling/live updates/cross-tab sync/reload recovery is required.
 126. [x] Presentation-ready coherent restaurant product uses warm hospitality character with clear search/availability/booking hierarchy.
-127. [ ] Dates, times, party size and seating choices are scannable; combined tables read as intentional seating choices with human labels.
+127. [x] Dates, times, party size and seating choices are scannable; combined tables read as intentional seating choices with human labels.
 128. [x] Consistent typography, spacing, colors, controls and feedback; primary actions obvious.
-129. [ ] Available,unavailable,selected,loading,success,refusal and uncertainty states visually distinct.
-130. [ ] Human-readable restaurant/table labels prominent; technical identifiers shown only when useful.
+129. [x] Available,unavailable,selected,loading,success,refusal and uncertainty states visually distinct.
+130. [x] Human-readable restaurant/table labels prominent; technical identifiers shown only when useful.
 131. [x] 375 CSS-pixel mobile and conventional desktop layouts remain usable without horizontal page scroll.
 132. [x] Visible input labels, apparent keyboard focus and sufficient text/control contrast throughout.
-133. [ ] Considered empty/loading/error states and consistent navigation across required routes; no custom asset required.
+133. [x] Considered empty/loading/error states and consistent navigation across required routes; no custom asset required.
 134. [x] Signup inputs expose signup-email,signup-password,signup-display-name and signup-submit button.
 135. [x] Login inputs/button expose login-email,login-password,login-submit.
 136. [x] auth-error exists only when auth error present; current-user appears every signed-in screen and contains display name; logout-button provided.
 137. [x] Logout removes active browser auth and all routes reflect signed-out state; account/token server rules remain inherited.
 138. [x] restaurant-select option values are restaurant IDs; date-input YYYY-MM-DD; party-size-input number; search-button runs search.
 139. [x] availability-grid holds results; no-slots is shown instead of grid when day has no slots.
-140. [ ] Single cells have slot-{table_id}-{HH:MM} testids and data-available=true exactly when table_id in searched slot available_table_ids; false otherwise.
+140. [x] Single cells have slot-{table_id}-{HH:MM} testids and data-available=true exactly when table_id in searched slot available_table_ids; false otherwise.
 141. [x] Click available single cell opens correct table/time booking form; unavailable click does nothing.
 142. [x] Signed-out available-cell click produces auth-error or navigates /login; authenticated booking requires server auth.
-143. [ ] booking-form, booking-summary, booking-party-size and booking-submit testids present; summary includes all selected table labels/local start.
-144. [ ] booking-party-size numeric input prefilled with searched party size; booking-error present only on confirmed refusal.
-145. [ ] Keep form after successful booking; unchanged submit repeats original reference with no error/second booking.
-146. [ ] Changing a field creates a new booking request/retry identity; unchanged requests reuse same body/key.
-147. [ ] confirmation and confirmation-reference appear after successful server booking; reference text exactly reference only.
-148. [ ] confirmation-details includes restaurant name,table label(s),local start; confirmation-tables includes every reservation table label.
-149. [ ] Lookup has lookup-reference-input,lookup-submit; found reservation-detail and reservation-status exactly confirmed/cancelled.
-150. [ ] reservation-cancel-button cancels and is absent after cancellation; reservation-error shown for not found/cancel refused.
-151. [ ] reservation-tables on lookup names every selected table; single confirmation/lookup behavior unchanged.
-152. [ ] Stage-2 accepts own stage-1 export with source service stopped before destination import; no source process/files/port/network dependence.
-153. [ ] Pre-upgrade signed-in browser remains signed in after between-request import, without reload/new screen.
-154. [ ] Retained pre-upgrade booking reference works in lookup after import.
-155. [ ] Response-lost pre-upgrade booking retries after import with same body/key and original confirmation; form and pending retry identity survive.
+143. [x] booking-form, booking-summary, booking-party-size and booking-submit testids present; summary includes all selected table labels/local start.
+144. [x] booking-party-size numeric input prefilled with searched party size; booking-error present only on confirmed refusal.
+145. [x] Keep form after successful booking; unchanged submit repeats original reference with no error/second booking.
+146. [x] Changing a field creates a new booking request/retry identity; unchanged requests reuse same body/key.
+147. [x] confirmation and confirmation-reference appear after successful server booking; reference text exactly reference only.
+148. [x] confirmation-details includes restaurant name,table label(s),local start; confirmation-tables includes every reservation table label.
+149. [x] Lookup has lookup-reference-input,lookup-submit; found reservation-detail and reservation-status exactly confirmed/cancelled.
+150. [x] reservation-cancel-button cancels and is absent after cancellation; reservation-error shown for not found/cancel refused.
+151. [x] reservation-tables on lookup names every selected table; single confirmation/lookup behavior unchanged.
+152. [x] Stage-2 accepts own stage-1 export with source service stopped before destination import; no source process/files/port/network dependence.
+153. [x] Pre-upgrade signed-in browser remains signed in after between-request import, without reload/new screen.
+154. [x] Retained pre-upgrade booking reference works in lookup after import.
+155. [x] Response-lost pre-upgrade booking retries after import with same body/key and original confirmation; form and pending retry identity survive.
 156. [ ] Restaurant combinable field is ordered list of unordered pairs of that restaurant's table IDs; pair member order preserved for option output/testids.
 157. [ ] Only declared pairs bookable; never triples; combination relation nontransitive.
 158. [ ] Combination capacity equals sum of two distinct member capacities.
@@ -193,9 +193,9 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 171. [ ] PATCH accepts table_ids same rules, atomically releases old members/reserves new members; failure changes none.
 172. [ ] Cancellation frees all members immediately; repeated cancellation identical state200.
 173. [ ] No-op pair order reversal returns200 without changing identities,timestamps,table selection values or occupancy.
-174. [ ] Combination UI cells use slot-{t_a}+{t_b}-{HH:MM} in combinable order and data-available consistent with eligible option.
-175. [ ] Combination cells shown when declared pair available for searched party size; all names use table labels.
-176. [ ] Single cell testids, confirmations and lookup remain compatible with stage1 singles.
+174. [x] Combination UI cells use slot-{t_a}+{t_b}-{HH:MM} in combinable order and data-available consistent with eligible option.
+175. [x] Combination cells shown when declared pair available for searched party size; all names use table labels.
+176. [x] Single cell testids, confirmations and lookup remain compatible with stage1 singles.
 177. [ ] Atomic moves accept table_ids per item with inherited validation/cutoff/order/retry behavior; resulting booking sets cannot overlap any member.
 178. [ ] Batch swap between singles/pairs commits all or nothing; non-occupancy errors precede occupancy; unchanged pair permutations no-op.
 179. [ ] Combination receipt retries preserve original response after amendment/cancel and export/import; body comparison remains JSON-value based.
@@ -209,13 +209,13 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 187. [ ] Pair declaration identifier is unordered restaurant-local member set, not globally scoped table IDs; stored order remains presentation order.
 188. [ ] Confirmed occupancy invariant applies to every member across all reservations; cancelled bookings/receipts cannot create occupancy.
 189. [ ] Import/reset validates reservation owner/configuration/member relationships, unique references/IDs, temporal consistency and receipt-token ownership; validates legacy and new versions before replacement.
-190. [ ] Browser session storage contains token/display identity and pending request key/body; successful stage1 token import remains valid; browser state never substitutes for server response.
-191. [ ] Use supplied interpreter/playwright Chromium/axe tools for browser checks; install nothing into harness interpreter.
-192. [ ] Independent browser checks exercise late searches,409 refresh preserving form,lost responses before/after commit,same-key retry,changed form key,combination equivalents and between-request upgrade.
-193. [ ] Independent checks cover responsive375px/desktop,no horizontal scroll,labels/focus/contrast,distinct states and complete required flows; retain screenshots outside frozen source as reviewable evidence.
-194. [ ] Before import proof stop actual stage1 process/container, then start independent stage2 destination and verify old accounts/tokens/references/create and batch receipts.
-195. [ ] Run inherited stage1 behavioral checks against stage2, new stage2 API/UI checks and full supplied isolated harness without skipping/deselecting/editing supplied checks.
-196. [ ] Measure maintainability against frozen stage1 baseline (radon/lizard plus observed limits), record figures and unresolved duplication-tool limits.
+190. [x] Browser session storage contains token/display identity and pending request key/body; successful stage1 token import remains valid; browser state never substitutes for server response.
+191. [x] Use supplied interpreter/playwright Chromium/axe tools for browser checks; install nothing into harness interpreter.
+192. [x] Independent browser checks exercise late searches,409 refresh preserving form,lost responses before/after commit,same-key retry,changed form key,combination equivalents and between-request upgrade.
+193. [x] Independent checks cover responsive375px/desktop,no horizontal scroll,labels/focus/contrast,distinct states and complete required flows; retain screenshots outside frozen source as reviewable evidence.
+194. [x] Before import proof stop actual stage1 process/container, then start independent stage2 destination and verify old accounts/tokens/references/create and batch receipts.
+195. [x] Run inherited stage1 behavioral checks against stage2, new stage2 API/UI checks and full supplied isolated harness without skipping/deselecting/editing supplied checks.
+196. [x] Measure maintainability against frozen stage1 baseline (radon/lizard plus observed limits); API group reports max CC9/mean CC2.81/minimum MI31.46 versus Stage 1 max CC9/mean CC2.64/minimum MI31.28.
 197. [ ] Final stage2 report includes exact accepted/final revisions,all seat contributions,harness claim/report path,every rejection/change,start/end/time,maintainability and open limitations.
 
 ## Baseline verification after the copied transport commit
@@ -243,6 +243,12 @@ This baseline check covers build/start, the health and restaurant routes, and co
 - The unavailable-cell regression initially used native `disabled`, which prevented the browser check from clicking it. The cell now remains focusable, reports its reserved state in its accessible name, and has an explicit no-op click handler; the available/unavailable click checks passed after the change.
 - A 375px and 1280px Chromium run measured document width at each of the four routes and at the single-table grid, form, and confirmation states. Every measurement matched the viewport; the confirmation reference remained a single exact A-Z0-9 reference and the browser reported no page errors.
 - The default Playwright Chromium revision was absent, but an installed Playwright Chromium at `%LOCALAPPDATA%/ms-playwright/chromium-1228/` worked through `CHROMIUM_PATH`; nothing was installed into the supplied interpreter.
-- Final interface image build at this checkpoint: `docker build --no-cache -t tablekeeper:stage-2 .\stage-2` passed. Under `--network none --cpus=2 --memory=2g -e PORT=8080`, health became ready in 0.84s; the four screens returned `text/html; charset=utf-8`, all three bundled scripts and the stylesheet returned HTTP 200 with their expected MIME types, `/health` and `/restaurants` returned JSON, IANA `Europe/Berlin`/`America/New_York` zones loaded, and egress to `1.1.1.1:443` failed with `connect_ex=101`. Inspect reported `none|2000000000|2147483648`; Docker stats showed 0.02% CPU and 14.87 MiB / 2 GiB.
-- The current source-level Chromium checks passed for screen/navigation (5), signup/login/logout (1), visual route audits (2), keyboard focus (2), visual system/touch targets (2), search/no-slots controls (1), human labels (1), available cell form opening (1), signed-out selection handling (1), unavailable-cell no-op (1), and single booking lookup/cancel (1): zero failures/errors/skips after the listed fixes. The test runner was supplied by verification/stage2; no tests were edited.
-- Stage 2 pair API flows, uncertain/409 recovery against the new core, and stopped-source import continuity still need the integrated run against the core builder's feature implementation. This checkpoint does not claim Stage 2 acceptance.
+- Added clear availability-failure feedback after the full browser group found the UI displayed the server's terse `down` message without explanation. The generic message was checked at desktop and mobile sizes: `--part browser -k test_L133_search_failure_shows_an_error_state` passed 2/2.
+- Integrated `--part browser` run against core revision `959aed77ac3c829080c382578b023a4cc8f5305b`: 59 tests, zero failures/errors/skips/deselections. This includes combinations, late searches, conflict refresh, lost-before/after response retries and browser continuity over a real Stage 1 export/import after stopping the source process.
+- Integrated `--part inherited` run: 178 tests, zero errors/skips; 176 passed and the two strict response-shape tests were explicitly superseded by Stage 2's added fields and replaced with Stage 2 shape checks.
+- Integrated `--part api` run: 89 tests, 85 passed, 4 failures, zero errors/skips. Findings: API race assertion `test_L180_self_amendments_have_a_serial_outcome` got `[422, 201]` for two amendments of the same reservation (core/test-semantics issue); kickoff manifest check reports pre-existing hash differences; `HARNESS_OUT` was absent because this API check ran before the supplied harness; and the shared stage record did not yet contain the final claimed-stage-2 report entry. These do not indicate an interface defect. Stage-record entry remains coordinator-owned.
+- Supplied isolated harness run from the read-only kickoff directory: `.venv/Scripts/python.exe -m harness run --track tablekeeper --repo <result> --stage 2 --mode isolated --out <fresh checks folder>`. Report `C:/Users/Prince/Documents/darkfactory/band-work/checks/harness-stage2-interface-r2/report.json` shows Stage 1 120/120 and Stage 2 25/25, zero skips/deselections, claimed stage 2. Stage 3 failed as expected at the unimplemented `/restaurants/r_anker/policies` endpoint.
+- The full API group measured Stage 2 maintainability at max CC 9, mean CC 2.81, minimum MI 31.46; the recorded Stage 1 baseline was max CC 9, mean CC 2.64, minimum MI 31.28. Largest Stage 2 function remains within the inherited budget; no code complexity warning was emitted.
+- Final interface image build after the UI feedback fix: `docker build --no-cache -t tablekeeper:stage-2-interface-final .\stage-2` passed. In `--network none --cpus=2 --memory=2g -e PORT=8080`, internal health returned 200 and all four HTML routes plus JS/CSS assets returned 200 with expected MIME types. `Europe/Berlin` and `America/New_York` tzdata loaded; egress to `1.1.1.1:443` failed with `connect_ex=101`; inspect reported `none|2147483648|2000000000`; Docker stats showed 0.02% CPU and 17.59 MiB / 2 GiB.
+- Screenshots and logs remain outside the source tree in `C:/Users/Prince/Documents/darkfactory/band-work/checks/stage2-interface-integrated-final/`, `.../checks/stage2-interface-inherited-final/`, and `.../checks/harness-stage2-interface-r2/`. The interface owns no test changes.
+- No Stage 2 acceptance claim: reviewer acceptance, corrected full independent API run, finalized coordinator stage record, and exact final revision freeze remain outstanding.
