@@ -35,26 +35,33 @@ def validate_series(state, receipt):
     require(set(response) == {'series_id', 'revision', 'interval_weeks', 'occurrences'},
             'Invalid series snapshot fields')
     agreement = series.owned(state, response['series_id'], receipt['user_id'])
-    require(type(response['revision']) is int and response['revision'] == 1, 'Adoption revision')
-    require(response['interval_weeks'] == body['interval_weeks'] == agreement['interval_weeks']
-            and type(response['interval_weeks']) is int, 'Series interval mismatch')
+    adoption_agreement(response, body, agreement)
     originals = array(response['occurrences'])
     require(len(originals) == len(agreement['occurrences']) == body['count'], 'Series count mismatch')
     snapshots = []
     for index, (original, current) in enumerate(zip(originals, agreement['occurrences'])):
-        require(isinstance(original, dict), 'Invalid adoption occurrence')
-        require(set(original) == {'index', 'reference', 'exception', 'reservation'},
-                'Invalid adoption occurrence fields')
-        require(type(original['index']) is int and original['index'] == index,
-                'Invalid adoption index')
-        require(original['exception'] is False and original['reference'] == current['reference'],
-                'Invalid adoption member')
-        record = snapshot_response(state, original['reservation'], receipt['user_id'])
-        require(record['reference'] == original['reference'], 'Adoption booking mismatch')
-        snapshots.append(record)
+        snapshots.append(adoption_occurrence(state, receipt['user_id'], index, original, current))
     require(snapshots[0]['reference'] == body['anchor_reference'], 'Anchor mismatch')
     validate_schedule(snapshots, body)
     validate_counters(state, agreement, snapshots)
+
+
+def adoption_agreement(response, body, agreement):
+    require(type(response['revision']) is int and response['revision'] == 1, 'Adoption revision')
+    require(response['interval_weeks'] == body['interval_weeks'] == agreement['interval_weeks']
+            and type(response['interval_weeks']) is int, 'Series interval mismatch')
+
+
+def adoption_occurrence(state, user, index, original, current):
+    require(isinstance(original, dict), 'Invalid adoption occurrence')
+    require(set(original) == {'index', 'reference', 'exception', 'reservation'},
+            'Invalid adoption occurrence fields')
+    require(type(original['index']) is int and original['index'] == index, 'Invalid adoption index')
+    require(original['exception'] is False and original['reference'] == current['reference'],
+            'Invalid adoption member')
+    record = snapshot_response(state, original['reservation'], user)
+    require(record['reference'] == original['reference'], 'Adoption booking mismatch')
+    return record
 
 
 def validate_schedule(records, body):
@@ -75,14 +82,18 @@ def validate_schedule(records, body):
 def validate_counters(state, agreement, snapshots):
     events = set()
     for item, original in zip(agreement['occurrences'], snapshots):
-        changes = [e for e in state['histories'][item['reference']]
-                   if e['revision'] > original['revision']]
-        collective = set(agreement.get('collective_events', []))
-        require(item['exception'] == any(e['event'] == 'changed' and e['at'] not in collective
-                                         for e in changes),
-                'Invalid occurrence exception history')
+        changes = occurrence_changes(state, agreement, item, original)
         events.update(e['at'] for e in changes)
     require(agreement['revision'] == 1 + len(events), 'Invalid series revision history')
+
+
+def occurrence_changes(state, agreement, item, original):
+    changes = [e for e in state['histories'][item['reference']]
+               if e['revision'] > original['revision']]
+    collective = set(agreement.get('collective_events', []))
+    require(item['exception'] == any(e['event'] == 'changed' and e['at'] not in collective
+                                     for e in changes), 'Invalid occurrence exception history')
+    return changes
 
 
 def publication_coverage(state):

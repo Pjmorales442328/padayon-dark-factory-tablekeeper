@@ -14,38 +14,62 @@ def validate(state, receipt):
     plan = replans.owned(state, parts[1], receipt['response'].get('plan_id'))
     replans.manager(state, parts[1], receipt['user_id'])
     if len(parts) == 3:
-        require(canonical(receipt['response']) == canonical(public(plan)), 'Preview snapshot mismatch')
-        from .closures import interval_record
-        config = replans.manager(state, parts[1], receipt['user_id'])
-        require(canonical(interval_record(receipt['body'], config)) == canonical(plan['closure']),
-                'Preview request mismatch')
+        validate_preview(state, receipt, plan, parts[1])
         return
     validate_apply(state, receipt, plan, parts[3])
 
 
+def validate_preview(state, receipt, plan, rid):
+    from .closures import interval_record
+    require(canonical(receipt['response']) == canonical(public(plan)), 'Preview snapshot mismatch')
+    config = replans.manager(state, rid, receipt['user_id'])
+    require(canonical(interval_record(receipt['body'], config)) == canonical(plan['closure']),
+            'Preview request mismatch')
+
+
 def validate_apply(state, receipt, plan, pid):
     response = receipt['response']
+    apply_identity(response, plan, pid)
+    records = array(response['reservations'])
+    require(len(records) == len(plan['snapshot']), 'Application count')
+    for saved, original, assignment in zip(records, plan['snapshot'], plan['assignments']):
+        apply_booking(state, saved, original, assignment)
+
+
+def apply_identity(response, plan, pid):
     require(plan['applied'] and pid == plan['plan_id'], 'Application plan mismatch')
     require(set(response) == {'plan_id', 'restaurant_revision', 'reservations'}, 'Apply fields')
     require(type(response['restaurant_revision']) is int and
             response['restaurant_revision'] == plan['restaurant_revision'] + 1, 'Apply revision')
-    records = array(response['reservations'])
-    require(len(records) == len(plan['snapshot']), 'Application count')
-    for saved, original, assignment in zip(records, plan['snapshot'], plan['assignments']):
-        record = snapshot_response(state, saved, original['user_id'])
-        require(record['reference'] == assignment['reference'] and
-                record['table_ids'] == assignment['table_ids'], 'Application assignment mismatch')
-        expected = original['revision'] + int(assignment['changed'])
-        require(record['revision'] == expected, 'Application booking revision')
-        retained = ('reservation_id', 'restaurant_id', 'user_id', 'party_size', 'status',
-                    'starts_at_local', 'starts_at', 'ends_at', 'created_at', 'accepted_terms')
-        require(all(record[key] == original[key] for key in retained), 'Repair changed accepted booking')
+
+
+def apply_booking(state, saved, original, assignment):
+    record = snapshot_response(state, saved, original['user_id'])
+    require(record['reference'] == assignment['reference'] and
+            record['table_ids'] == assignment['table_ids'], 'Application assignment mismatch')
+    expected = original['revision'] + int(assignment['changed'])
+    require(record['revision'] == expected, 'Application booking revision')
+    retained_booking(record, original)
+
+
+def retained_booking(record, original):
+    retained = ('reservation_id', 'restaurant_id', 'user_id', 'party_size', 'status',
+                'starts_at_local', 'starts_at', 'ends_at', 'created_at', 'accepted_terms')
+    require(all(record[key] == original[key] for key in retained), 'Repair changed accepted booking')
 
 
 def validate_amend(state, receipt, sid):
     agreement = series.owned(state, sid, receipt['user_id'])
     data = series_amend.request(receipt['body'], len(agreement['occurrences']))
     response = receipt['response']
+    amend_identity(response, agreement, data, sid)
+    occurrences = array(response['occurrences'])
+    require(len(occurrences) == len(agreement['occurrences']), 'Amend count')
+    for index, (saved, item) in enumerate(zip(occurrences, agreement['occurrences'])):
+        amend_occurrence(state, receipt['user_id'], index, saved, item)
+
+
+def amend_identity(response, agreement, data, sid):
     require(set(response) == {'series_id', 'revision', 'interval_weeks', 'occurrences'}, 'Amend fields')
     require(response['series_id'] == sid and type(response['revision']) is int and
             response['revision'] in (data['expected_revision'], data['expected_revision'] + 1),
@@ -53,16 +77,16 @@ def validate_amend(state, receipt, sid):
     require(response['revision'] <= agreement['revision'], 'Amend revision beyond current series')
     require(response['interval_weeks'] == agreement['interval_weeks'] and
             type(response['interval_weeks']) is int, 'Amend interval')
-    occurrences = array(response['occurrences'])
-    require(len(occurrences) == len(agreement['occurrences']), 'Amend count')
-    for index, (saved, item) in enumerate(zip(occurrences, agreement['occurrences'])):
-        require(isinstance(saved, dict), 'Invalid amendment occurrence')
-        require(set(saved) == {'index', 'reference', 'exception', 'reservation'}, 'Amend occurrence fields')
-        require(type(saved['index']) is int and saved['index'] == index and
-                saved['reference'] == item['reference'] and type(saved['exception']) is bool,
-                'Amend occurrence mismatch')
-        record = snapshot_response(state, saved['reservation'], receipt['user_id'], False)
-        require(record['reference'] == item['reference'], 'Amend booking mismatch')
+
+
+def amend_occurrence(state, user, index, saved, item):
+    require(isinstance(saved, dict), 'Invalid amendment occurrence')
+    require(set(saved) == {'index', 'reference', 'exception', 'reservation'}, 'Amend occurrence fields')
+    require(type(saved['index']) is int and saved['index'] == index and
+            saved['reference'] == item['reference'] and type(saved['exception']) is bool,
+            'Amend occurrence mismatch')
+    record = snapshot_response(state, saved['reservation'], user, False)
+    require(record['reference'] == item['reference'], 'Amend booking mismatch')
 
 
 def coverage(state):

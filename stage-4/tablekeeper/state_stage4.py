@@ -23,12 +23,16 @@ def schedules(state, data, native):
         original = adopted.get(agreement['series_id'])
         require(original is not None, 'Missing adoption snapshot')
         original_dates = adoption_dates(original)
-        if native:
-            require(agreement.get('scheduled_dates') == original_dates, 'Original schedule changed')
-        else:
-            agreement['scheduled_dates'] = original_dates
+        scheduled_dates(agreement, original_dates, native)
         validate_schedule(agreement)
         validate_collective(state, agreement)
+
+
+def scheduled_dates(agreement, original_dates, native):
+    if native:
+        require(agreement.get('scheduled_dates') == original_dates, 'Original schedule changed')
+    else:
+        agreement['scheduled_dates'] = original_dates
 
 
 def adoptions(data):
@@ -36,22 +40,34 @@ def adoptions(data):
     for receipt in array(data.get('receipts', [])):
         require(isinstance(receipt, dict), 'Invalid receipt')
         if receipt.get('path') == '/series':
-            response = receipt.get('response')
-            require(isinstance(response, dict), 'Invalid adoption snapshot')
-            sid = identifier(response.get('series_id'))
-            require(sid not in result, 'Duplicate adoption snapshot')
-            result[sid] = response
+            adoption_snapshot(result, receipt)
     return result
+
+
+def adoption_snapshot(result, receipt):
+    response = receipt.get('response')
+    require(isinstance(response, dict), 'Invalid adoption snapshot')
+    sid = identifier(response.get('series_id'))
+    require(sid not in result, 'Duplicate adoption snapshot')
+    result[sid] = response
 
 
 def adoption_dates(original):
     occurrences = fields(original, {'occurrences': array})['occurrences']
     dates = []
     for item in occurrences:
-        booking = fields(item, {'reservation': lambda value: fields(value, {'starts_at_local': local})})
-        dates.append(str(booking['reservation']['starts_at_local'].date()))
+        dates.append(occurrence_date(item))
     require(bool(dates), 'Missing original occurrences')
     return dates
+
+
+def occurrence_date(item):
+    booking = fields(item, {'reservation': scheduled_booking})
+    return str(booking['reservation']['starts_at_local'].date())
+
+
+def scheduled_booking(value):
+    return fields(value, {'starts_at_local': local})
 
 
 def validate_schedule(agreement):
@@ -68,9 +84,13 @@ def validate_collective(state, agreement):
     require(len(events) == len(set(events)), 'Duplicate collective event')
     for at in events:
         timestamp(at)
-        require(any(e['at'] == at and e['event'] == 'changed'
-                    for o in agreement['occurrences'] for e in state['histories'][o['reference']]),
-                'Missing collective history')
+        collective_history(state, agreement, at)
+
+
+def collective_history(state, agreement, at):
+    require(any(e['at'] == at and e['event'] == 'changed'
+                for o in agreement['occurrences'] for e in state['histories'][o['reference']]),
+            'Missing collective history')
 
 
 def repair_histories(state):
