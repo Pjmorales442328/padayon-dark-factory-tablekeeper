@@ -93,11 +93,11 @@ class UpgradeBrowser4(unittest.TestCase):
 
             # stage-3 state: a series with a cancelled member and a published policy, all made directly through the API
             bob = s3.call("POST", "/auth/login", {"email": "bob@example.com", "password": "battery staple"}).json["token"]
-            first = s3.call("POST", "/reservations", {"restaurant_id": "r_anker", "table_id": "t_1", "starts_at_local": f"{THU}T20:00",
+            first = s3.call("POST", "/reservations", {"restaurant_id": "r_anker", "table_id": "t_1", "starts_at_local": f"{THU}T21:00",
                                                        "party_size": 2}, token=bob, key="s3-series-first")
             self.assertEqual(first.status, 201, first.raw)
-            series = s3.call("POST", f"/reservations/{first.json['reference']}/series", {"count": 3, "interval_weeks": 1}, token=bob,
-                             key="s3-series-adopt")
+            adopt_body = {"anchor_reference": first.json["reference"], "count": 3, "interval_weeks": 1}
+            series = s3.call("POST", "/series", adopt_body, token=bob, key="s3-series-adopt")
             self.assertEqual(series.status, 201, series.raw)
             export = s3.call("GET", "/_test/export").json                       # private, memory only
 
@@ -135,14 +135,15 @@ class UpgradeBrowser4(unittest.TestCase):
             # receipts and the series replay exactly; the old stage-3 reservation JSON is unchanged
             r = d.call("POST", "/reservations", json.loads(post1), token=token, key=key1)
             self.assertEqual((r.status, r.json), (200, original))
-            r = d.call("POST", f"/reservations/{first.json['reference']}/series", {"count": 3, "interval_weeks": 1}, token=bob, key="s3-series-adopt")
+            r = d.call("POST", "/series", adopt_body, token=bob, key="s3-series-adopt")
             self.assertEqual((r.status, r.json), (200, series.json))
             # stage-4 behaviour on the imported state: preview and amend work through the new backend
-            p = d.call("POST", "/restaurants/r_anker/replans", {"table_id": "t_2", "from": inst(THU, "18:00"), "to": inst(THU, "23:00")},
+            # closing t_1 for the evening displaces the 21:00 series occurrence; t_2 and t_3 are free after their 19:00-20:30 stays
+            p = d.call("POST", "/restaurants/r_anker/replans", {"table_id": "t_1", "from": inst(THU, "18:00"), "to": inst(THU, "23:00")},
                        token=token, key="s4-first-plan")
             self.assertEqual(p.status, 201, p.raw)
             am = d.call("POST", f"/series/{series.json['series_id']}/amend",
-                        {"expected_revision": series.json["revision"], "from_index": 1, "local_time": "21:00"}, token=bob, key="s4-first-amend")
+                        {"expected_revision": series.json["revision"], "from_index": 1, "local_time": "20:00"}, token=bob, key="s4-first-amend")
             self.assertEqual(am.status, 201, am.raw)
             ctx.close()
             browser.close()

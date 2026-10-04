@@ -42,7 +42,7 @@ class AppliedPlan(BrowserBase):
         self.page.click(tid("lookup-submit"))
         self.page.wait_for_selector(tid("reservation-detail"))
         self.assertEqual(self.text("reservation-status"), "confirmed")
-        names = {"t_1": "Terrace", "t_2": "Booth", "t_3": "Window"}
+        names = {"t_1": "Window", "t_2": "Booth", "t_3": "Terrace"}
         shown = self.text("reservation-tables")
         for t in (moved.get("table_ids") or [moved["table_id"]]):
             self.assertIn(names[t], shown, "lookup shows the table the plan moved the booking to")

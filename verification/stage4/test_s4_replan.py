@@ -20,10 +20,6 @@ def bk(self, who, local, table="t_2", party=2, rest="r_anker"):
 
 
 class Preview(Base4):
-    def setUp(self):
-        super().setUp()
-        self.ta, self.tb = self.ada, self.bob
-
     def test_L293_permissions_and_precedence(self):
         self.err(self.api.call("POST", "/restaurants/r_anker/replans", {"table_id": "t_2", "from": inst(THU, "18:00"), "to": inst(THU, "23:00")},
                                key="k1"), 401, "unauthenticated")
@@ -129,7 +125,7 @@ class Preview(Base4):
         after = snap()
         self.assertEqual(after[:5], before[:5])
         self.assertEqual(after[5], before[5], "previews do not touch the restaurant revision")
-        self.err(self.book(self.ada, T, table="t_2", party=2), 201 and 409, "table_unavailable")      # still the booking, not a closure
+        self.err(self.book(self.ada, T, table="t_2", party=2), 409, "table_unavailable")      # still the booking, not a closure
         self.assertEqual(self.ok_book(self.ada, f"{THU}T21:00", table="t_2", party=2)["table_ids"], ["t_2"], "no closure exists")
         self.assertNotEqual(p["plan_id"], p2["plan_id"])
 
@@ -137,22 +133,27 @@ class Preview(Base4):
         a = bk(self, self.tb, T, "t_2", 3)
         b = bk(self, self.ada, T, "t_3", 5)
         refs = [a["reference"], b["reference"]]
-        before = (self.reads(refs, self.ada) if False else [self.get_res(a["reference"], self.tb), self.get_res(b["reference"], self.ada)],
-                  self.rev())
+        snap = lambda: (self.get_res(a["reference"], self.tb), self.get_res(b["reference"], self.ada), self.rev())
+        before = snap()
         r = self.replan(self.ta, "t_2", key="nf-1")
-        self.err(r, 409, "no_feasible_plan")
-        self.assertEqual((self.get_res(a["reference"], self.tb), self.get_res(b["reference"], self.ada), self.rev())[2], before[1])
+        self.err(r, 409, "no_feasible_plan")                                               # b needs t_3 (5 seats); a (3) then fits nowhere
+        self.assertEqual(snap(), before)
         # the key was not consumed: after a booking is cancelled the same key works
         self.assertEqual(self.api.call("POST", f"/reservations/{b['reference']}/cancel", token=self.ada).status, 200)
         r2 = self.replan(self.ta, "t_2", key="nf-1")
         self.assertEqual(r2.status, 201, r2)
         self.assertEqual([x["table_ids"] for x in r2.json["assignments"]], [["t_3"]])
-        # a closure that leaves a table that is too small: no plan
+        # party 6 on t_3: closing t_3 leaves the declared pair t_1+t_2 (2+4 = 6), so a plan exists
         self.reset()
         c = bk(self, self.tb, T, "t_3", 6)
-        self.err(self.replan(self.ta, "t_3"), 409, "no_feasible_plan")                    # only t_2+t_3 (10) and t_3 seat six
-        self.err(self.replan(self.ta, "t_3", inst(THU, "20:30"), inst(THU, "23:00")), 409, "no_feasible_plan")   # overlaps 19:00-20:30? no: ends 20:30
+        p = self.ok_replan("t_3")
+        self.assertEqual([x["table_ids"] for x in p["assignments"]], [["t_1", "t_2"]])
+        # the same booking with a blocker on t_2 that the window does not consider (20:00 starts after 19:30): nothing fits
+        bk(self, self.ada, f"{THU}T20:00", "t_2", 2)
+        self.err(self.replan(self.ta, "t_3", inst(THU, "19:00"), inst(THU, "19:30")), 409, "no_feasible_plan")
         self.assertEqual(self.get_res(c["reference"], self.tb)["table_ids"], ["t_3"])
+        # a window starting exactly when the booking ends considers nothing, so it succeeds with an empty plan
+        self.assertEqual(self.ok_replan("t_3", inst(THU, "20:30"), inst(THU, "23:00"))["assignments"], [])
 
     def test_L303_a_plan_for_the_overlap_check_is_half_open(self):
         a = bk(self, self.tb, T, "t_3", 6)                                                     # 19:00-20:30 local
@@ -177,9 +178,7 @@ class Preview(Base4):
         p = self.replan(self.tb, "t_1", inst(THU, "11:00"), inst(THU, "15:00"), rest="r_other")
         self.assertEqual(p.status, 201, p)
         self.assertEqual([x["reference"] for x in p.json["assignments"]], [o["reference"]])
-        self.assertEqual(p.json["assignments"][0]["table_ids"], ["t_9"] if False else p.json["assignments"][0]["table_ids"])
-        ids = [x["table_ids"] for x in p.json["assignments"]]
-        self.assertTrue(ids[0] in (["t_9"],) or ids[0] == ["t_9"] or ids[0] is not None)
+        self.assertEqual(p.json["assignments"][0]["table_ids"], ["t_9"], "the other restaurant's own free table")
 
     def test_L296_limits_up_to_six_tables_four_pairs_six_bookings(self):
         tables = [{"id": f"x_{i}", "label": f"X{i}", "capacity": c} for i, c in enumerate((2, 2, 4, 4, 6, 6), 1)]
@@ -307,8 +306,7 @@ class Planning(Base4):
     def test_L299_priority_3_rank_vector_in_reference_order_breaks_ties(self):
         a = bk(self, self.bob, T, "t_2", 1)
         b = bk(self, self.ada, T, "t_3", 1)
-        for _ in range(1):
-            j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"))
+        j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"))
         self.assertEqual(j["moved_count"], 1)
         # the smaller reference must receive the better (lower) rank among equally good plans
         self.assertEqual(len(j["assignments"]), 2)
@@ -318,7 +316,6 @@ class Planning(Base4):
         b = bk(self, self.ada, f"{THU}T19:30", "t_3", 4)
         j = self.check("t_1", inst(THU, "18:00"), inst(THU, "23:00"))                  # no spare table of two seats for a
         self.assertIsNotNone(j)
-        self.assertEqual(j["unused_seats"], sum(1 for _ in ()) + j["unused_seats"])
         # reversed pair input is the same set; the plan reports the declared order
         self.reset()
         c = self.ok_pair(self.bob, T, ["t_3", "t_2"], 9)
@@ -337,9 +334,6 @@ class Planning(Base4):
         self.assertIsNotNone(j)
         j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"))                  # old (4) and new (3) both need to move apart
         self.assertIsNotNone(j)
-        if j:
-            by = {x["reference"]: x["table_ids"] for x in j["assignments"]}
-            self.assertEqual(by[new["reference"]], by[new["reference"]])
 
     def test_L297_pair_capacity_is_the_sum_under_the_bookings_own_terms(self):
         self.ok_publish(policy(THU, capacities={"t_1": 3, "t_2": 5, "t_3": 7}))
@@ -357,7 +351,7 @@ class Planning(Base4):
         self.assertIsNotNone(j)
         # a pair member closed for the full booking interval (not only for the closure window)
         self.reset()
-        a = bk(self, self.bob, f"{THU}T19:00", "t_3", 9 if False else 5)
+        a = bk(self, self.bob, f"{THU}T19:00", "t_3", 5)
         j = self.check("t_3", inst(THU, "19:00"), inst(THU, "19:30"))
         self.assertIsNotNone(j)
         # applied closures
@@ -486,7 +480,7 @@ class Planning(Base4):
         bks = [{"reference": "A", "party": 4, "start": s, "end": e, "caps": caps2, "current": ["t_2"]},
                {"reference": "B", "party": 2, "start": s, "end": e, "caps": caps2, "current": ["t_3"]}]
         a3 = oracle(tables, pairs, bks, [], [], ("t_2", s, e))
-        self.assertEqual(a3, ({"A": ["t_1", "t_2"], "B": ["t_3"]}, 1, 2) if False else a3)
+        self.assertEqual(a3, ({"A": ["t_3"], "B": ["t_1"]}, 2, 2), "A (4) can only use t_3, which forces B (2) onto t_1")
 
 
 class Revision(Base4):
@@ -495,7 +489,7 @@ class Revision(Base4):
 
     def test_L304_starts_at_zero_after_reset_and_is_scoped_by_restaurant(self):
         self.assertEqual(self.rev(), 0)
-        self.assertEqual(self.rev("r_other", self.bob) if False else self.replan(self.bob, "t_1", FAR_FROM, FAR_TO, "r_other").json["restaurant_revision"], 0)
+        self.assertEqual(self.replan(self.bob, "t_1", FAR_FROM, FAR_TO, "r_other").json["restaurant_revision"], 0)
         bk(self, self.bob, T)
         self.assertEqual(self.rev(), 1)
         self.reset()
@@ -539,7 +533,7 @@ class Revision(Base4):
         self.slot_map("r_anker", THU, 2)
         self.explain("r_anker", THU, 2)
         self.ok_replan("t_2")
-        self.err(self.replan(self.ta_ or self.ada, "t_2", body={"table_id": "t_404", "from": FAR_FROM, "to": FAR_TO}), 404, "not_found") if False else None
+        self.err(self.replan(self.ta, body={"table_id": "t_404", "from": FAR_FROM, "to": FAR_TO}), 404, "not_found")
         self.assertEqual(self.rev(), base)
 
     def test_L306_adoption_and_atomic_batches_increment_once(self):
@@ -643,15 +637,22 @@ class Apply(Base4):
     def test_L308_apply_key_rules(self):
         a, b = self.scene()
         pid = self.ok_replan("t_2")["plan_id"]
-        self.err(self.apply(self.ada, pid, key="ap-1", body={"x": 1}) if False else self.apply(self.ada, "nope", key="ap-0"), 404, "not_found")
+        self.err(self.apply(self.ada, "nope", key="ap-0"), 404, "not_found")
         r = self.apply(self.ada, pid, key="ap-1")
         self.assertEqual(r.status, 201, r)
-        self.err(self.apply(self.ada, pid, key="ap-1", body={"unexpected": True}) if False else self.apply(self.ada, "other", key="ap-1"), 409, "idempotency_key_reuse")
+        # keys are scoped to user, method and path: the same key on another plan URL is a different request
+        self.err(self.apply(self.ada, "other", key="ap-1"), 404, "not_found")
+        # the same key, same URL, different JSON is a reuse; the same JSON replays
+        self.err(self.apply(self.ada, pid, key="ap-1", body={"unexpected": True}), 409, "idempotency_key_reuse")
+        again = self.apply(self.ada, pid, key="ap-1")
+        self.assertEqual((again.status, again.json), (200, r.json))
+        # another user's key space is separate: bob's identical key fails on authorisation, not as a reuse
+        self.err(self.apply(self.bob, pid, key="ap-1"), 403, "forbidden")
 
     def test_L309_any_intervening_revision_makes_the_plan_stale_and_changes_nothing(self):
         triggers = {
             "booking": lambda s: s.ok_book(s.ada, f"{THU}T21:30", table="t_3", party=2),
-            "amendment": lambda s: s.patch(s.A["reference"], {"party_size": 4}, s.bob) if False else s.patch(s.B["reference"], {"party_size": 1}, s.ada),
+            "amendment": lambda s: s.patch(s.B["reference"], {"party_size": 1}, s.ada),
             "cancel": lambda s: s.api.call("POST", f"/reservations/{s.B['reference']}/cancel", token=s.ada),
             "policy": lambda s: s.ok_publish(policy("2031-01-01")),
             "other-plan": lambda s: s.ok_apply(s.ok_replan("t_3", inst(THU, "22:00"), inst(THU, "23:00"))["plan_id"]),
@@ -669,7 +670,6 @@ class Apply(Base4):
             self.err(r, 409, "stale_plan")
             self.assertEqual(snap(), before, name)
             self.assertEqual(self.get_res(self.A["reference"], self.bob)["table_ids"], ["t_2"], name)
-            self.ok_book(self.ada, T, table="t_3", party=2) if False else None
             # the key was not consumed: a fresh preview applies under the same key
             fresh = self.ok_replan("t_2")
             self.assertEqual(self.apply(self.ada, fresh["plan_id"], key="stale-key").status, 201, name)
@@ -683,7 +683,6 @@ class Apply(Base4):
         self.assertEqual(self.patch(b["reference"], {"party_size": 2}, self.ada).status, 200)    # no-op
         self.assertEqual(self.patch(b["reference"], {"party_size": 99}, self.ada).status, 422)    # failure
         self.assertEqual(self.get_res(a["reference"], self.bob)["revision"], 1)
-        self.ok_book(self.ada, "2030-01-03T12:00", table="t_1", party=2, rest="r_other") if False else None
         self.assertEqual(self.api.call("POST", "/reservations", {"restaurant_id": "r_other", "table_id": "t_1", "starts_at_local": "2030-01-03T12:00",
                                                                     "party_size": 2}, token=self.ada, key="oth").status, 201)
         self.assertEqual(self.apply(self.ada, plan["plan_id"]).status, 201)
@@ -705,7 +704,7 @@ class Apply(Base4):
             r4 = self.apply(self.ada, plan["plan_id"], key="win")
             self.assertEqual((r4.status, r4.json), (200, r1.json))
         self.assertEqual(self.get_res(a["reference"], self.bob)["revision"], 3, "replays change nothing")
-        self.err(self.apply(self.ada, plan["plan_id"], key="lose-2"), 409, "plan_already_applied") if False else None
+        self.err(self.apply(self.ada, plan["plan_id"], key="lose-2"), 409, "plan_already_applied")
 
     def test_L311_apply_shape_covers_every_considered_booking_in_reference_order(self):
         a = bk(self, self.bob, T, "t_2", 3)
@@ -757,13 +756,13 @@ class Apply(Base4):
     def test_L312_pair_involved_repair_lists_full_table_sets(self):
         c = self.ok_pair(self.bob, T, ["t_1", "t_2"], 6)
         p = self.ok_replan("t_1")
-        self.assertEqual([x["table_ids"] for x in p["assignments"]], [["t_2", "t_3"]])
+        # t_3 alone seats six with no waste; t_2+t_3 would waste four seats, so the objective picks t_3
+        self.assertEqual(([x["table_ids"] for x in p["assignments"]], p["unused_seats"]), ([["t_3"]], 0))
         self.ok_apply(p["plan_id"])
         e = self.history(c["reference"], self.bob)["entries"][-1]
         self.assertEqual((e["event"], e["plan_id"]), ("reassigned", p["plan_id"]))
-        self.assertEqual(e["changes"], [{"field": "table_ids", "from": ["t_1", "t_2"], "to": ["t_2", "t_3"]}])
-        self.assertEqual(self.get_res(c["reference"], self.bob)["table_ids"], ["t_2", "t_3"])
-        self.assertNotIn("table_id", self.get_res(c["reference"], self.bob))
+        self.assertEqual(e["changes"], [{"field": "table_ids", "from": ["t_1", "t_2"], "to": ["t_3"]}], "full table sets, pair to single")
+        self.assertEqual(self.tids(self.get_res(c["reference"], self.bob)), ["t_3"])
 
     def test_L315_zero_move_closure_still_counts_once(self):
         a = bk(self, self.bob, T, "t_1", 2)
@@ -779,7 +778,6 @@ class Apply(Base4):
         p2 = self.ok_replan("t_1", inst(THU, "10:00"), inst(THU, "11:00"))
         self.assertEqual(p2["assignments"], [])
         self.assertEqual(self.ok_apply(p2["plan_id"])["reservations"], [])
-        self.assertNotIn("t_1", self.slot_map("r_anker", THU, 1)["2030-01-03T18:00"]["available_table_ids"] if False else [])
 
     def test_L316_closure_excludes_availability_creates_amendments_and_explains(self):
         a = bk(self, self.bob, T, "t_2", 3)
@@ -789,13 +787,10 @@ class Apply(Base4):
         for local in ("2030-01-03T19:00", "2030-01-03T19:30", "2030-01-03T20:00", "2030-01-03T20:30"):
             self.assertNotIn("t_2", slots[local]["available_table_ids"], local)
             self.assertFalse(any("t_2" in o["table_ids"] for o in slots[local]["available_options"]), local)
-        for local in ("2030-01-03T18:00", "2030-01-03T21:00", "2030-01-03T21:30"):
-            if local in ("2030-01-03T18:00",):
-                continue
+        for local in ("2030-01-03T18:00", "2030-01-03T18:30"):                               # 90 minutes reach into [19:00, 21:00)
+            self.assertNotIn("t_2", slots[local]["available_table_ids"], local + " (the booking would overlap the closure)")
+        for local in ("2030-01-03T21:00", "2030-01-03T21:30"):
             self.assertIn("t_2", slots[local]["available_table_ids"], local + " (the closure is half-open)")
-        self.assertIn("t_2", slots["2030-01-03T18:00"]["available_table_ids"] if False else ["t_2"])
-        self.assertIn("t_2", slots["2030-01-03T21:00"]["available_table_ids"], "a booking starting exactly at the closure end is fine")
-        self.assertNotIn("t_2", slots["2030-01-03T18:00"]["available_table_ids"] if False else [])
         ex = self.explain("r_anker", THU, 1)
         for local, closed in (("2030-01-03T19:00", True), ("2030-01-03T21:00", False)):
             row = next(t for t in ex[local]["explain"] if t["table_id"] == "t_2")
@@ -813,13 +808,13 @@ class Apply(Base4):
         b = bk(self, self.ada, "2030-01-03T19:30", "t_1", 2)
         for body in ({"table_id": "t_2"}, {"table_ids": ["t_1", "t_2"], "party_size": 3}):
             self.err(self.patch(b["reference"], body, self.ada), 409, "table_unavailable")
-        c = bk(self, self.ada, "2030-01-03T22:00", "t_3", 2)
-        self.err(self.patch(c["reference"], {"table_id": "t_2", "starts_at_local": "2030-01-03T20:30"}, self.ada), 409, "table_unavailable")
+        c = bk(self, self.ada, "2030-01-03T21:00", "t_3", 2)                                 # 21:00-22:30 fits the 23:00 closing
+        self.err(self.patch(c["reference"], {"table_id": "t_2", "starts_at_local": "2030-01-03T19:30"}, self.ada), 409, "table_unavailable")
         moved = self.moves([{"reference": b["reference"], "table_id": "t_2"}], self.ada)
         self.err(moved, 409, "table_unavailable")
         self.assertEqual(self.get_res(b["reference"], self.ada)["table_ids"], ["t_1"])
         # a closure never blocks other tables or other days
-        self.assertEqual(self.book(self.ada, "2030-01-03T19:30", table="t_3", party=2).status, 201)
+        self.assertEqual(self.book(self.ada, "2030-01-03T21:00", table="t_1", party=2).status, 201)    # a was moved to t_3, b holds t_1 until 21:00
         self.assertIn("t_2", self.slot_map("r_anker", FRI, 1)["2030-01-04T19:00"]["available_table_ids"])
 
     def test_L317_closure_is_confined_to_its_restaurant_and_table(self):
@@ -877,8 +872,6 @@ class Apply(Base4):
                     a, b = lst[A["reference"]], lst[B["reference"]]
                     if set(a) & set(b) or ("t_3" in a) != (a == ["t_3"]):
                         bad.append(lst)
-                    if a != ["t_3"] and b == ["t_2"] and False:
-                        bad.append(lst)
         ts = [threading.Thread(target=reader) for _ in range(4)]
         for t in ts:
             t.start()
@@ -900,30 +893,40 @@ class Apply(Base4):
         g0 = self.get_series(s["series_id"], self.bob)
         self.assertEqual([o["exception"] for o in g0["occurrences"]][:3], [False, False, True])
         u0 = self.get_series(u["series_id"], self.ada)
-        p = self.ok_replan("t_2", inst(THU, "00:00"), inst(add_days(THU, 40), "00:00"))
-        moved = [x for x in p["assignments"] if x["changed"]]
-        self.assertEqual(len(moved), 3, "three confirmed occurrences of the first series move; cancelled ones are not considered")
+        frm, to = inst(THU, "00:00"), inst(add_days(THU, 40), "00:00")
+        # both series are considered (every confirmed overlapping booking), so the optimum comes from the independent oracle
+        confirmed = [(o["reference"], self.bob) for o in g0["occurrences"] if o["reservation"]["status"] == "confirmed"] + \
+                    [(o["reference"], self.ada) for o in u0["occurrences"]]
+        books = [{k: v for k, v in b.items() if k != "status"} for b in self.oracle_input(None, confirmed)]
+        want = oracle(self.TABLES, self.PAIRS, books, [], [], ("t_2", parse(frm), parse(to)))
+        self.assertIsNotNone(want, "a plan exists for these two series")
+        assign, want_moved, want_unused = want
+        p = self.ok_replan("t_2", frm, to)
+        self.assertEqual({x["reference"]: x["table_ids"] for x in p["assignments"]}, assign)
+        self.assertEqual((p["moved_count"], p["unused_seats"]), (want_moved, want_unused))
+        changed = {x["reference"] for x in p["assignments"] if x["changed"]}
+        self.assertTrue(changed, "closing t_2 moves at least the occurrences sitting on it")
         self.ok_apply(p["plan_id"])
         g1 = self.get_series(s["series_id"], self.bob)
-        self.assertEqual(g1["revision"], g0["revision"] + 1, "one increment for the whole plan although three members moved")
-        self.assertEqual([o["exception"] for o in g1["occurrences"]], [o["exception"] for o in g0["occurrences"]])
-        self.assertEqual([o["index"] for o in g1["occurrences"]], [0, 1, 2, 3])
-        self.assertEqual([o["reference"] for o in g1["occurrences"]], refs)
-        for before, after in zip(g0["occurrences"], g1["occurrences"]):
-            for k in ("starts_at_local", "starts_at", "ends_at", "accepted_terms", "party_size", "reservation_id"):
-                self.assertEqual(after["reservation"][k], before["reservation"][k], k)
-        for i in (0, 1, 2):
-            self.assertNotEqual(self.tids(g1["occurrences"][i]["reservation"]), ["t_2"])
-            self.assertEqual(g1["occurrences"][i]["reservation"]["revision"], g0["occurrences"][i]["reservation"]["revision"] + 1)
-        self.assertEqual(self.tids(g1["occurrences"][3]["reservation"]), ["t_2"], "a cancelled occurrence is not repaired")
         u1 = self.get_series(u["series_id"], self.ada)
-        self.assertEqual(u1, u0, "a series none of whose members moved is untouched")
-        # a second plan moving one member of the other series
-        p2 = self.ok_replan("t_3", inst(THU, "00:00"), inst(add_days(THU, 8), "00:00"))
-        self.ok_apply(p2["plan_id"])
-        u2 = self.get_series(u["series_id"], self.ada)
-        self.assertEqual(u2["revision"], u0["revision"] + 1)
-        self.assertEqual([o["exception"] for o in u2["occurrences"]], [False, False, False])
+        for before, after in ((g0, g1), (u0, u1)):
+            any_moved = any(o["reference"] in changed for o in before["occurrences"])
+            self.assertEqual(after["revision"], before["revision"] + (1 if any_moved else 0),
+                             "one increment for the whole plan however many members moved, none when no member moved")
+            self.assertEqual([o["exception"] for o in after["occurrences"]], [o["exception"] for o in before["occurrences"]])
+            self.assertEqual([o["index"] for o in after["occurrences"]], [o["index"] for o in before["occurrences"]])
+            self.assertEqual([o["reference"] for o in after["occurrences"]], [o["reference"] for o in before["occurrences"]])
+            for b0, b1 in zip(before["occurrences"], after["occurrences"]):
+                for k in ("starts_at_local", "starts_at", "ends_at", "accepted_terms", "party_size", "reservation_id"):
+                    self.assertEqual(b1["reservation"][k], b0["reservation"][k], k)
+                moved = b0["reference"] in changed
+                self.assertEqual(b1["reservation"]["revision"], b0["reservation"]["revision"] + (1 if moved else 0))
+                if moved:
+                    self.assertEqual(self.tids(b1["reservation"]), assign[b0["reference"]])
+        self.assertEqual([o["exception"] for o in g1["occurrences"]][:3], [False, False, True], "the exception stays an exception")
+        self.assertEqual(self.tids(g1["occurrences"][3]["reservation"]), ["t_2"], "a cancelled occurrence is not repaired")
+        if not any(o["reference"] in changed for o in u0["occurrences"]):
+            self.assertEqual(u1, u0, "a series none of whose members moved is untouched")
 
     def test_L330_a_plan_that_moves_nothing_of_a_series_leaves_its_revision(self):
         a, s = self.mk_series(3, local=T, table_id="t_2", party=2)

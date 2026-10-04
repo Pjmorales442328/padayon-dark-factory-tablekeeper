@@ -102,6 +102,15 @@ class Base4(Base3):
     PAIRS = [["t_1", "t_2"], ["t_2", "t_3"]]
     TABLES = ["t_1", "t_2", "t_3"]
 
+    @property
+    def ta(self):
+        """Ada's token from a login made now (a reset invalidates every earlier token)."""
+        return self.ada
+
+    @property
+    def tb(self):
+        return self.bob
+
     # --- replans
     def replan(self, token, table_id="t_2", frm=None, to=None, rest="r_anker", key=None, body=None):
         b = body if body is not None else {"table_id": table_id, "from": frm or inst(THU, "18:00"), "to": to or inst(THU, "23:00")}

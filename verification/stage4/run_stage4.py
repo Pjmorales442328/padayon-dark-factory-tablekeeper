@@ -29,6 +29,13 @@ SUPERSEDED = {
         "frozen stage-2 strict reservation key set; replaced by test_s3_booking_history.Terms.test_L062_L230_*",
     "test_s2_transfer.TestUpgrade.test_L154_L184_references_resolve_and_singletons_gain_table_ids":
         "frozen stage-2 import equality (stage 3 adds revision/terms); replaced by test_s3_transfer.UpgradeBase.test_L261_L282_*",
+    "test_s3_http.Delivery3.test_L002_L003_runmd_and_dockerfile_for_stage3":
+        "frozen stage-3 RUN.md regex requires 'stage-3'; replaced by test_s4_http.Packaging4.test_L002_L003_runmd_and_dockerfile_for_stage4",
+    "test_s3_http.Process3.test_L114_L195_harness_claimed_stage_3":
+        "frozen stage-3 assertion needs 'claimed stage: 3' in HARNESS_OUT; replaced by test_s4_http.HarnessRun (claimed stage: 4)",
+    "test_s3_transfer.ImportValidation3.test_L281_L272_history_sequence_and_events_are_validated":
+        "frozen stage-3 picks the longest seq-bearing list, which in stage 4 can be restaurant_events; replaced by "
+        "test_s4_import_adapter.ImportValidation4.test_L281_L272_* (reservation histories selected by shape)",
 }
 
 
@@ -56,8 +63,9 @@ def collect(part):
         for m in ("test_s4_replan", "test_s4_series_amend", "test_s4_transfer"):
             suite.addTests(loader.loadTestsFromName(m))
         import test_s4_http
-        for c in (test_s4_http.MixedConcurrency, test_s4_http.Malformed, test_s4_http.Maintainability):
+        for c in (test_s4_http.MixedConcurrency, test_s4_http.Malformed, test_s4_http.Maintainability, test_s4_http.Packaging4):
             suite.addTests(loader.loadTestsFromTestCase(c))
+        suite.addTests(loader.loadTestsFromName("test_s4_import_adapter.ImportValidation4.test_L281_L272_history_sequence_and_events_are_validated"))
     if part in ("browser", "all"):
         for m in ("test_s4_browser", "test_s4_upgrade_browser"):
             suite.addTests(loader.loadTestsFromName(m))

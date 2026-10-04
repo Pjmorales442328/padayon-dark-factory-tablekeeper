@@ -363,3 +363,21 @@ Files: verification/stage4/{s4common,test_s4_replan,test_s4_series_amend,test_s4
 Run: `<harness python> verification/stage4/run_stage4.py --out <folder outside repo> [--part inherited1|inherited2|inherited3|api|browser|harness|all]`.
 Coverage map: 351/351 lines. No candidate executed yet (gated); first run may correct wrong checks with stated reasons.
 Ambiguities: (a) considered set = all confirmed overlapping restaurant bookings vs only closed-table bookings; (b) re-apply of applied plan under new key: plan_already_applied vs stale_plan; (c) plan_id location in reassigned history entry (top-level assumed); (d) legacy-import restaurant revision default (tested as int>=0, stable, +1 on write); (e) whether member patch/cancel bumps series revision (relative baselines).
+
+## Correction task list (core-builder checkpoint ba2effa2, findings F1-F17; owner-side check defects)
+- [x] C1 (F1) current-stage4 replacements for Stage3 RUN regex / claimed-stage3 assertion; keep SUPERSEDED visible
+- [x] C2 (F3) stage3 history mutation check: adapter selects reservation histories by shape
+- [x] C3 (F4) Planning.check/self.ta/self.tb: use current login after every reset
+- [x] C4 (F5) Native.setUp must not assign read-only ada/bob
+- [x] C5 (F6) L308 key reuse: same URL changed JSON; separate path-scope test
+- [x] C6 (F7) L312/L303 expectations via oracle
+- [x] C7 (F8) L316 fitting start
+- [x] C8 (F9) L330 via oracle, per-series counters
+- [x] C9 (F10,F11) L324 end 21:30; valid adoption before cutoff
+- [x] C10 (F12) fixtures L326/L327/L328, MixedConcurrency, stage3 transfer pair
+- [x] C11 (F13) L331 exception stays
+- [x] C12 (F14) legacy imports: manager fixture; old 404 endpoints
+- [x] C13 (F15) fixture labels t_1 Window t_2 Booth t_3 Terrace
+- [x] C14 (F16) adoption route POST /series
+- [x] C15 (F17) maintainability compares real frozen Stage3 path
+- [x] C16 verify each claim against the contract, rerun, commit findings file, report

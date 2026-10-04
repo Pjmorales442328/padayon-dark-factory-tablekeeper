@@ -79,12 +79,26 @@ class Native(Base4):
             cls.dst_proc.kill()
         super().tearDownClass()
 
+    _tk = None
+
+    @property
+    def ada(self):
+        """The token captured by populate() (tokens survive an export; a fresh login after it would not)."""
+        return self._tk["ada"] if self._tk else super().ada
+
+    @property
+    def bob(self):
+        return self._tk["bob"] if self._tk else super().bob
+
+    def reset(self, fx=None):
+        self._tk = None                                     # a reset invalidates every earlier token
+        return super().reset(fx)
+
     def populate(self):
         f = fixture4(reservations=[seed_res(1, "u_bob", "r_anker", "t_1", f"{FRI}T18:00", 2, "BOBSEED1")])
         f["users"][0]["password"] = PW
         self.reset(f)
-        self.ada = login(self.api, "ada@example.com", PW)
-        self.bob = login(self.api, "bob@example.com", "battery staple")
+        self._tk = {"ada": login(self.api, "ada@example.com", PW), "bob": login(self.api, "bob@example.com", "battery staple")}
         self.calls = []
 
         def rec(method, path, body, tok, key):
@@ -101,7 +115,6 @@ class Native(Base4):
                                          "party_size": 8}, self.bob, "n-pair")
         b = rec("POST", "/reservations", {"restaurant_id": "r_anker", "table_id": "t_1", "starts_at_local": f"{THU}T21:00", "party_size": 2},
                 self.ada, "n-b").json
-        rec("POST", "/policies", None, self.ada, "n-none") if False else None
         rec("POST", "/restaurants/r_anker/policies", policy(add_days(THU, 14), duration=60, capacities={"t_1": 2, "t_2": 4, "t_3": 6}), self.ada, "n-pol")
         p1 = rec("POST", "/restaurants/r_anker/replans", {"table_id": "t_2", "from": inst(THU, "18:00"), "to": inst(THU, "20:00")}, self.ada, "n-p1")
         self.assertEqual(p1.status, 201, p1)
@@ -284,15 +297,13 @@ class Native(Base4):
         pid = self.p4["plan_id"]
         self.reset()
         self.assertEqual(self.rev(), 0)
-        self.err(self.api.call("POST", f"/restaurants/r_anker/replans/{pid}/apply", {}, token=self.ada, key="gone"), 401, "unauthenticated") \
-            if False else None
         ada = self.ada
         self.err(self.apply(ada, pid), 404, "not_found")
         self.assertEqual(self.book(self.ada, f"{THU}T19:00", table="t_2", party=2, key="n-a").status, 201, "reset receipts: a reused key is new")
         self.assertEqual(self.book(self.bob, f"{THU}T19:00", table="t_2", party=2, key="n-a").status, 409)
         self.reset()
         self.assertEqual(self.slot_map("r_anker", THU, 1)["2030-01-03T19:00"]["available_table_ids"], ["t_1", "t_2", "t_3"])
-        self.assertEqual(self.all_res(self.bob) == [] or True, True)
+        self.assertEqual(self.all_res(self.bob), [], "reset removed every imported/earlier booking")
 
 
 # ====================================================================================== upgrade from earlier stages (343, 341, 342)
@@ -328,7 +339,7 @@ class UpgradeBase:
         cls.C = bk("u-C", "t_1", f"{THU}T21:00", 1, cls.tok_ada)
         cls.D = bk("u-D", "t_1", T, 2, cls.tok_bob)
         if cls.LEVEL >= 2:
-            cls.P = bk("u-P", ["t_1", "t_2"], f"{add_days(THU, 7)}T19:00", 5, cls.tok_ada)
+            cls.P = bk("u-P", ["t_1", "t_2"], f"{add_days(THU, 8)}T19:00", 5, cls.tok_ada)       # off the weekly t_2 series dates
         s.call("POST", f"/reservations/{cls.C['reference']}/cancel", token=cls.tok_ada)
         cls.series_ids = []
         if cls.LEVEL >= 3:
@@ -386,6 +397,10 @@ class UpgradeBase:
             if key[0] == "avail":
                 self.assertEqual(after[key][0], status)
                 continue
+            if key[-1] in ("/history", "/decision") and status == 404:
+                # the old stage lacked these endpoints; after migration the owner reads them (stage 3 requirement 206/241, ledger 261)
+                self.assertEqual(after[key][0], 200, (key, "an endpoint the old stage lacked is served to the owner after migration"))
+                continue
             self.assertEqual(after[key][0], status, key)
             if key[-1] == "":
                 for k, v in js.items():
@@ -403,6 +418,11 @@ class UpgradeBase:
         self.err(r, 409, "idempotency_key_reuse")
 
     def test_L341_restaurant_revision_is_well_defined_after_import(self):
+        if self.LEVEL < 3:
+            # stage 1/2 fixtures declare no manager_user_ids (stage 3 default []), so nobody may plan after the import
+            self.err(self.d.call("POST", "/restaurants/r_anker/replans", {"table_id": "t_1", "from": FAR_FROM, "to": FAR_TO},
+                                 token=self.tok_ada, key="no-mgr"), 403, "forbidden")
+            return
         a = probe_rev(self.d, self.tok_ada)
         self.assertIs(type(a), int)
         self.assertGreaterEqual(a, 0)
@@ -415,6 +435,10 @@ class UpgradeBase:
         self.assertNotEqual(observe(self.d, self.toks, self.series_ids), before)
 
     def test_L341_replans_work_on_imported_bookings(self):
+        if self.LEVEL < 3:
+            self.err(self.d.call("POST", "/restaurants/r_anker/replans", {"table_id": "t_2", "from": inst(THU, "18:00"), "to": inst(THU, "23:00")},
+                                 token=self.tok_ada, key="imp-p"), 403, "forbidden")
+            return
         p = self.d.call("POST", "/restaurants/r_anker/replans", {"table_id": "t_2", "from": inst(THU, "18:00"), "to": inst(THU, "23:00")},
                         token=self.tok_ada, key="imp-p")
         self.assertIn(p.status, (201, 409), p)
@@ -428,7 +452,21 @@ class UpgradeBase:
 
     def test_L342_imported_series_support_amend_and_repair(self):
         if self.LEVEL < 3:
-            self.skipTest_not_applicable = True
+            # an imported legacy anchor is adopted (stage 3 requirement 262), then amended with stage-4 semantics
+            d = self.d
+            ad = d.call("POST", "/series", {"anchor_reference": self.A["reference"], "count": 3, "interval_weeks": 1}, token=self.tok_bob,
+                        key="leg-ser")
+            self.assertEqual(ad.status, 201, ad)
+            sid = ad.json["series_id"]
+            r = d.call("POST", f"/series/{sid}/amend", {"expected_revision": ad.json["revision"], "from_index": 1, "local_time": "20:00"},
+                       token=self.tok_bob, key="leg-am")
+            self.assertEqual(r.status, 201, r)
+            self.assertEqual([o["reservation"]["starts_at_local"][11:16] for o in r.json["occurrences"]], [T[11:], "20:00", "20:00"])
+            self.assertEqual(r.json["revision"], ad.json["revision"] + 1)
+            self.assertEqual(d.call("POST", f"/series/{sid}/amend", {"expected_revision": ad.json["revision"], "from_index": 1,
+                                                                      "local_time": "20:00"}, token=self.tok_bob, key="leg-am").json, r.json)
+            self.err(d.call("POST", f"/series/{sid}/amend", {"expected_revision": ad.json["revision"], "from_index": 0, "local_time": "20:00"},
+                            token=self.tok_bob, key="leg-stale"), 409, "stale_revision")
             return
         sid, tok = self.series_ids[0]
         d = self.d

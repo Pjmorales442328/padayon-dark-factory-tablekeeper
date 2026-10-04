@@ -20,8 +20,8 @@ class MixedConcurrency(Base4):
     def test_L347_fifty_mixed_operations_serializable_and_never_5xx(self):
         a, s = self.mk_series(4, 1, T, "t_2", 2)
         refs = [o["reference"] for o in s["occurrences"]]
-        for i in range(3):
-            self.ok_book(self.ada, f"{THU}T{20 + i // 2}:{'30' if i % 2 else '00'}", table="t_1", party=2)
+        for table, hh in (("t_1", "19:00"), ("t_1", "21:00"), ("t_3", "21:00")):       # 90-minute stays: no two overlap on one table
+            self.ok_book(self.ada, f"{THU}T{hh}", table=table, party=2)
         plans = [self.ok_replan("t_2", inst(THU, "18:00"), inst(THU, "23:00"))["plan_id"] for _ in range(2)]
         base_export = self.api.call("GET", "/_test/export").json                       # private: memory only
         exports, results = [], []
@@ -93,7 +93,6 @@ class MixedConcurrency(Base4):
 
     def test_L347_concurrent_previews_and_applies_across_two_restaurants_do_not_interfere(self):
         self.ok_book(self.ada, f"{THU}T19:00", table="t_2", party=3)
-        self.ok_book(self.bob, f"{THU}T19:00", table="t_1", party=2, rest="r_other") if False else None
         p1 = self.ok_replan("t_2")
         o1 = self.replan(self.bob, "t_1", FAR_FROM, FAR_TO, "r_other")
         self.assertEqual(o1.status, 201)
@@ -163,6 +162,21 @@ def metrics(root):
     dup = sum(1 for v in windows.values() if v > 1)
     return {"functions": len(cc), "cc_max": max(cc or [0]), "cc_mean": sum(cc) / max(1, len(cc)), "longest_function": longest,
             "largest_file": max(sizes.values() or [0]), "duplicate_6line_blocks": dup}
+
+
+class Packaging4(unittest.TestCase):
+    def test_L002_L003_runmd_and_dockerfile_for_stage4(self):
+        run = open(os.path.join(STAGE4_DIR, "RUN.md"), encoding="utf-8").read()
+        self.assertRegex(run, r"docker\s+build")
+        self.assertRegex(run, r"docker\s+run")
+        self.assertIn("PORT", run)
+        self.assertRegex(run, r"stage-?4", "RUN.md must describe the stage-4 build path/tag")
+        df = open(os.path.join(STAGE4_DIR, "Dockerfile"), encoding="utf-8").read()
+        self.assertRegex(df, r"(?im)^FROM\s+\S*python")
+        self.assertRegex(df, r"(?im)^(CMD|ENTRYPOINT)\b")
+        self.assertNotRegex(run.lower(), r"docker[- ]compose")
+        for svc in ("redis", "postgres", "mysql", "mongo", "rabbit", "kafka"):
+            self.assertNotIn(svc, run.lower() + df.lower())
 
 
 class Maintainability(unittest.TestCase):

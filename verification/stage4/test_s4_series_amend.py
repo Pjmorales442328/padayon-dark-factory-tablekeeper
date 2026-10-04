@@ -1,5 +1,8 @@
 """Stage 4: series clock amendment POST /series/{id}/amend (ledger 318-331, 337)."""
-from s4common import Base4, THU, T, add_days, policy, hours, seed_res, fixture4, clock_minute, inst
+import datetime as dt
+import time
+
+from s4common import Base4, THU, T, add_days, policy, hours, seed_res, fixture4, clock_minute, inst, parse
 
 
 def local_times(s):
@@ -63,7 +66,6 @@ class Amend(Base4):
         self.assertEqual(r.status, 201, r)
         # validation outranks nothing but resolves after key reuse
         self.err(self.amend(self.bob, sid, 0, 0, "", key="kk", body=good), 409, "stale_revision")
-        self.err(self.amend(self.bob, sid, 0, 0, "", key="kk", body=dict(good, local_time="bad")), 409, "stale_revision") if False else None
 
     def test_L318_key_reuse_precedes_validation(self):
         a, s = self.series_()
@@ -114,7 +116,7 @@ class Amend(Base4):
                     self.assertEqual(res1[k], res0[k], k)
             self.assertEqual(self.tids(res1), self.tids(res0))
             self.assertEqual(res1["revision"], res0["revision"] + 1)
-            self.assertEqual(res1["ends_at"][11:16], "22:30", "duration of the accepted terms (90 minutes)")
+            self.assertEqual(res1["ends_at"][11:16], "22:30", "21:00 plus the accepted 90 minutes")
         for i in (0, 2, 3):
             self.assertEqual(n["occurrences"][i], cur["occurrences"][i])
 
@@ -156,8 +158,7 @@ class Amend(Base4):
         e = self.history(refs[0], self.bob)["entries"][-1]
         self.assertEqual(e["event"], "changed")
         self.assertEqual(e["revision"], 2)
-        self.assertEqual([c["field"] for c in e["changes"]], ["starts_at_local"] if e["changes"][0]["field"] == "starts_at_local" else
-                         [c["field"] for c in e["changes"]])
+        self.assertIn("starts_at_local", [c["field"] for c in e["changes"]])
 
     def test_L329_history_revisions_and_restaurant_revision(self):
         a, s = self.series_(3)
@@ -184,10 +185,14 @@ class Amend(Base4):
 
     # ------------------------------------------------------------------------------------------ cutoff, policy, DST
     def test_L324_old_cutoff_blocks_and_the_new_date_adopts_its_policy(self):
-        f = fixture4(reservations=[seed_res(1, "u_bob", "r_clock", "t_1", clock_minute(90), 2, "NEAR0001"),
-                                   seed_res(2, "u_bob", "r_clock", "t_2", clock_minute(60 * 24 * 7 + 90), 2, "NEAR0002")])
+        # an anchor just outside its 120-minute cutoff can be adopted; once the clock passes the cutoff boundary the amendment is blocked
+        f = fixture4(reservations=[seed_res(1, "u_bob", "r_clock", "t_1", clock_minute(122), 2, "NEAR0001")])
         self.reset(f)
         s = self.ok_adopt("NEAR0001", 2, 1, self.bob)
+        deadline = time.time() + 300
+        while parse(self.get_res("NEAR0001", self.bob)["starts_at"]) - dt.datetime.now(dt.timezone.utc) >= dt.timedelta(minutes=119, seconds=30):
+            self.assertLess(time.time(), deadline, "the clock never reached the cutoff boundary")
+            time.sleep(5)
         cur, reads0, rev0 = self.snap(s)
         start = cur["occurrences"][0]["reservation"]["starts_at_local"][11:16]
         new = "00:07" if start != "00:07" else "00:08"
@@ -204,7 +209,7 @@ class Amend(Base4):
         n = self.ok_amend(self.bob, s["series_id"], cur["revision"], 0, "20:00")
         v = [o["reservation"]["accepted_terms"]["policy_version"] for o in n["occurrences"]]
         self.assertEqual(v, [0, 0, 1, 1])
-        self.assertEqual([o["reservation"]["ends_at"][11:16] for o in n["occurrences"]], ["22:30", "22:30", "21:00", "21:00"])
+        self.assertEqual([o["reservation"]["ends_at"][11:16] for o in n["occurrences"]], ["21:30", "21:30", "21:00", "21:00"])      # 20:00 + 90 (old terms) and 20:00 + 60 (policy 1)
         self.assertEqual(n["occurrences"][2]["reservation"]["accepted_terms"]["cancellation_cutoff_minutes"], 60)
         h = self.history(n["occurrences"][2]["reference"], self.bob)["entries"][-1]
         self.assertEqual(h["accepted_terms"]["policy_version"], 1)
@@ -232,14 +237,15 @@ class Amend(Base4):
     def test_L326_non_occupancy_errors_in_index_order_outrank_occupancy(self):
         a, s = self.series_(4)
         refs = [o["reference"] for o in s["occurrences"]]
-        self.ok_publish(policy(add_days(THU, 21), hours_=None) if False else policy(add_days(THU, 21), opening=hours("18:00", "20:00", ["mon", "tue", "wed", "thu", "fri", "sat"])))
-        # occurrence 1 (THU+7) would collide with another booking at 20:00; occurrence 3 would be outside the new hours
-        self.assertEqual(self.book(self.ada, f"{add_days(THU, 7)}T20:00", table="t_2", party=2).status, 201)
+        self.ok_publish(policy(add_days(THU, 21), opening=hours("18:00", "22:00", ["mon", "tue", "wed", "thu", "fri", "sat"])))
+        # the blocker 21:30-23:00 on THU+7 leaves the series' own 19:00-20:30 alone; occurrence 3 (THU+21) closes at 22:00
+        self.assertEqual(self.book(self.ada, f"{add_days(THU, 7)}T21:30", table="t_2", party=2).status, 201)
         cur, reads0, rev0 = self.snap(s)
-        self.err(self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:30"), 422, "outside_opening_hours")
+        # 21:00-22:30 collides with the blocker at occurrence 1 AND ends after 22:00 at occurrence 3: the non-occupancy error wins
+        self.err(self.amend(self.bob, s["series_id"], cur["revision"], 0, "21:00"), 422, "outside_opening_hours")
         self.assertEqual(self.snap(s), (cur, reads0, rev0))
-        # only the occupancy conflict remains
-        self.err(self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:00"), 409, "table_unavailable")
+        # 20:30-22:00 fits every opening time, so only the occupancy conflict remains
+        self.err(self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:30"), 409, "table_unavailable")
         self.assertEqual(self.snap(s), (cur, reads0, rev0))
         # an earlier-index non-occupancy error wins over a later-index one (grid at index 0 is not tested, the same time is used everywhere)
         self.err(self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:10"), 422, "not_on_slot_grid")
@@ -248,7 +254,7 @@ class Amend(Base4):
 
     def test_L327_party_and_capacity_errors_come_from_accepted_terms_and_outrank_occupancy(self):
         a, s = self.series_(3, party=4)
-        self.assertEqual(self.book(self.ada, f"{add_days(THU, 7)}T20:00", table="t_2", party=2).status, 201)
+        self.assertEqual(self.book(self.ada, f"{add_days(THU, 7)}T20:30", table="t_2", party=2).status, 201)   # 20:30-22:00, clear of 19:00-20:30
         cur, reads0, rev0 = self.snap(s)
         self.ok_publish(policy(add_days(THU, 14), capacities={"t_1": 2, "t_2": 3, "t_3": 6}))
         cur = self.get_series(s["series_id"], self.bob)
@@ -260,13 +266,13 @@ class Amend(Base4):
     def test_L328_a_conflict_with_other_bookings_closures_and_own_siblings(self):
         a, s = self.series_(3)
         k = self.newkey()
-        self.assertEqual(self.book(self.ada, f"{add_days(THU, 14)}T21:00", table="t_2", party=2).status, 201)
+        self.assertEqual(self.book(self.ada, f"{add_days(THU, 14)}T21:30", table="t_2", party=2).status, 201)   # 21:30-23:00
         cur, reads0, rev0 = self.snap(s)
-        r = self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:30", key=k)             # 20:30-22:00 overlaps 21:00-22:30
+        r = self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:30", key=k)             # 20:30-22:00 overlaps 21:30-23:00
         self.err(r, 409, "table_unavailable")
         self.assertEqual(self.snap(s), (cur, reads0, rev0))
         # the key is still free; a different request under it works
-        ok = self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:00", key=k)
+        ok = self.amend(self.bob, s["series_id"], cur["revision"], 0, "20:00", key=k)            # 20:00-21:30 ends when the blocker starts
         self.assertEqual(ok.status, 201, ok)
         # a closure blocks too
         p = self.ok_replan("t_2", inst(THU, "00:00"), inst(THU, "23:59"))
@@ -301,7 +307,8 @@ class Amend(Base4):
         for _ in range(2):
             r2 = self.amend(self.bob, s["series_id"], 1, 0, "20:00", key="rp")
             self.assertEqual((r2.status, r2.json), (200, r1.json), "the original, not the current state")
-        self.assertEqual(local_times(self.get_series(s["series_id"], self.bob)), ["21:00"] * 3)
+        # the member that became an exception by its party-size amendment keeps its own time; the ordinary siblings moved
+        self.assertEqual(local_times(self.get_series(s["series_id"], self.bob)), ["21:00", "20:00", "21:00"])
         # a failed request leaves the key reusable and a replay of the failure is not stored as a success
         self.err(self.amend(self.bob, s["series_id"], 1, 0, "20:00", key="fail"), 409, "stale_revision")
         cur = self.get_series(s["series_id"], self.bob)
