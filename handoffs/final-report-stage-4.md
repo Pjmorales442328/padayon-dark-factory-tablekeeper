@@ -32,9 +32,8 @@ Maintainability same tools vs frozenStage3:
 |LizardmeanCCN|3.155|3.122|
 |MaxfunctionNLOC|25|25|
 |Warnings|0|0|
-Reviewer duplication lizard -Eduplicate:0.00%both. Earlierreports toolunavailable remainhistorical; reviewer suppliedobservedtoolmethod. FinalJS remainsinterface-owned, revieweravgCCN2.7/0warnings; initialStage4JS390NLOC/52functions reported. AllM1figures correctedatorbetterbaseline.
+Reviewer duplication: supplied interpreter's lizard over frozen Stage3 (8093f21) and accepted Stage4 (8e929cc) tablekeeper Python files with -l python -Eduplicate reported0.00%both. This detector finds exact token-sequence repeats only; near-duplicates are not measured. JavaScript duplication was not measured. Earlierreports toolunavailable remainhistorical; reviewer suppliedobservedtoolmethod. FinalJS remainsinterface-owned, revieweravgCCN2.7/0warnings; initialStage4JS390NLOC/52functions reported. AllM1figures correctedatorbetterbaseline.
 
 Evidence: offlinecleanarchive2CPU2GiBcontainerhealthy~3s; allassetsbundled/PORTcorrect. Testertiminghealthy0.51s,150requests50waymax0.79s,50logins2.09s,302-userreset6.79s (earlier10.13s beforeboundedhashing). Actual frozenStage3 stoppedandportclosedbefore independentStage4import; oldcreate/move/seriesreceipts exact,history/session/reference retained,legacyrestaurantrevision0. Same-tabpendingkey/bodyrecoveryworks. Legacy1/2/nativeunapplied/appliedplan/closures/seriesreceiptsroundtrip validated. Screens375px/1280px axe/nooverflow,appliedplan/currentview/recovery pass.
 
 Openlimitations: pre-run kickoffmanifest mismatch harness/cli.py/docs/participant-guide.md remainsvisible; rawinheritedsuite has supersededfailure/erroroutputs; chunkedrequestbodies400; state-size-dependentreset/availability/planningcost, explicitplanninglimit supported6tables/4pairs/6considered; empiricaltimingsnotarbitrary-statebounds. NoStage5 exists. Untrackedcachesandunfinishedownersevidenceexcludedfromfrozencommittedsource. AllStage4requiredrevision/closure/series semanticsaccepted; no humanquestions/approval or sourcechangesafterfreeze.
-
