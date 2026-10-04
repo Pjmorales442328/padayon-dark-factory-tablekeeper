@@ -1,0 +1,14 @@
+# Reviewer decision: ACCEPT Stage 2 exact revision 94e7654c4427fa3c087279675edbe1cda4f5a4fc
+
+Absolute path: C:/Users/Prince/Documents/darkfactory/band-work/result/handoffs/reviewer-acceptance-stage-2-94e7654.md
+Basis: my committed audit cdb6ede7c4cb87d11f24b5d4ad6947432566b1a2 (handoffs/reviewer-findings-integrated-stage-2-94e7654.md, no defects) plus the tester evidence 8be25eb3a3d3d23ccc8eb86221cac376fcf6d7ad (checks revision 52dbf4c30006155a20a1bd54d653079bb5da5f89, verified full hashes from git), harness evidence checks/harness-s2-94e7654 and coordinator record 682be1746f3f6728feca4824a4a11e54282dc6c1.
+
+Verified now:
+- Candidate tree: `git diff --stat 94e7654 HEAD -- stage-1 stage-2` empty at HEAD 682be17 (no later committed stage change); `git diff --stat 344e085 HEAD -- stage-1` empty (frozen stage 1 untouched).
+- Supplied harness (exact --repo stage 2 isolated command): my own run (rv/h5) and the tester's (checks/harness-s2-94e7654/report.json: stages {1: pass, 2: pass}, highest_contiguous 2; console prints "claimed stage: 2 on the shipped checks"): stage 1 120/120, stage 2 25/25, no skips or deselections; stage 3 fails as expected. The report's bookkeeping revision is b50ac1b whose stage-2 tree is identical to the target.
+- Independent suite 326 tests: 4 failures, 0 errors, 0 skips, all of them non-service: kickoff manifest mismatch (pre-run harness/cli.py and docs/participant-guide.md, mtime 2026-10-03, no seat caused it), the coordinator's final-report record check (pending record, not a service defect), and two inherited stage-1 strict-shape assertions superseded by stage-2 requirements with passing replacements. The suite is therefore not clean and must not be described as clean.
+- My independent evidence on the same committed tree: stopped-source browser upgrade in one never-reloaded tab, 375 px and 1280 px screenshots/axe/no horizontal scroll, lost-response/409/late-search recovery for singles and pairs, combined-table API and races, 50-way load with no 5xx, no-network 2 CPU/2 GiB image (details in the audit file).
+
+Limits and conditions for the freeze:
+- UNCOMMITTED DRIFT: the shared working copy has an uncommitted edit to stage-2/static/app.js (search-error message text, mtime 2026-10-04 08:27 +0800) that is not part of 94e7654. This acceptance covers the committed revision only. That edit must be discarded (or committed and re-reviewed as a new revision) before the freeze; do not freeze the working copy. Untracked __pycache__ directories in stage-1/stage-2 must not be staged.
+- Advisories unchanged: chunked request bodies get 400; reset and availability cost scale with state size (302-user reset 10.25 s on the tester's Windows host, 5.6 s in my container); duplicate-block and JS complexity metrics unavailable; radon average CC 2.81 vs stage 1 2.64, none rank C.
