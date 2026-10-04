@@ -189,9 +189,10 @@ async function submitBooking(event) {
     const response = await api("/reservations", { method: "POST", headers: { "Idempotency-Key": pending.key }, json: body });
     const result = await readResponse(response);
     if (typeof result.reference !== "string" || !result.reference) throw new Error("The reservation reply was incomplete. Please retry this same table.");
+    const current = await currentReservation(result.reference, result);
     showMessage(feedback, "booking-uncertain", "");
     showMessage(feedback, "booking-error", "");
-    showConfirmation(result, responseTables(result, selection), selection);
+    showConfirmation(current, responseTables(current, selection), selection);
   } catch (error) {
     if (error.status === 409 && error.code === "table_unavailable") {
       showMessage(feedback, "booking-error", error.message);
@@ -204,6 +205,14 @@ async function submitBooking(event) {
   } finally {
     submit.disabled = false;
     submit.textContent = "Confirm reservation";
+  }
+}
+
+async function currentReservation(reference, receipt) {
+  try {
+    return await readResponse(await api(`/reservations/${encodeURIComponent(reference)}`));
+  } catch {
+    return receipt;
   }
 }
 
