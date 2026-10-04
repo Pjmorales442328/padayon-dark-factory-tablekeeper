@@ -42,6 +42,15 @@ def apply(state, body, user, rid, pid):
     require(not plan['applied'], 'Plan already applied', 409, 'plan_already_applied')
     require(state['restaurant_revisions'][rid] == plan['restaurant_revision'],
             'Restaurant changed since preview', 409, 'stale_plan')
+    records, moved = apply_assignments(state, plan, pid)
+    state['closures'].append({'restaurant_id': rid, **deepcopy(plan['closure'])})
+    series.affected(state, moved, False)
+    plan['applied'] = True
+    return 201, {'plan_id': pid, 'restaurant_revision': plan['restaurant_revision'] + 1,
+                 'reservations': records}
+
+
+def apply_assignments(state, plan, pid):
     at = chronology.next_at(state)
     moved = []
     records = []
@@ -51,11 +60,7 @@ def apply(state, body, user, rid, pid):
             reassign(state, record, assignment['table_ids'], pid, at)
             moved.append(record['reference'])
         records.append(bookings.view(record))
-    state['closures'].append({'restaurant_id': rid, **deepcopy(plan['closure'])})
-    series.affected(state, moved, False)
-    plan['applied'] = True
-    return 201, {'plan_id': pid, 'restaurant_revision': plan['restaurant_revision'] + 1,
-                 'reservations': records}
+    return records, moved
 
 
 def reassign(state, record, ids, pid, at):

@@ -13,9 +13,13 @@ def considered(state, config, closure):
     selected = sorted((r for r in confirmed if closures.intersects(r, closure)),
                       key=lambda r: r['reference'])
     fixed = [r for r in confirmed if not closures.intersects(r, closure)]
+    planning_limits(config, selected)
+    return deepcopy(selected), deepcopy(fixed)
+
+
+def planning_limits(config, selected):
     require(len(config['tables']) <= 6 and len(config.get('combinable', [])) <= 4 and
             len(selected) <= 6, 'Planning limits exceeded', 422, 'planning_limit')
-    return deepcopy(selected), deepcopy(fixed)
 
 
 def confirmed_bookings(state, rid):
@@ -26,13 +30,21 @@ def confirmed_bookings(state, rid):
 def choices(config, record, obstacles):
     result = []
     for rank, option in enumerate(seating_options(configured(config, record['accepted_terms']))):
-        candidate = {**record, **selection_fields(option['table_ids'])}
-        if len(option['table_ids']) == 2:
-            candidate.pop('table_id', None)
-        if option['capacity'] >= record['party_size'] and not any(
-                overlaps(candidate, other) for other in obstacles):
+        candidate = option_booking(record, option)
+        if option['capacity'] >= record['party_size'] and conflict_free(candidate, obstacles):
             result.append((candidate, option['capacity'] - record['party_size'], rank))
     return result
+
+
+def option_booking(record, option):
+    candidate = {**record, **selection_fields(option['table_ids'])}
+    if len(option['table_ids']) == 2:
+        candidate.pop('table_id', None)
+    return candidate
+
+
+def conflict_free(candidate, obstacles):
+    return not any(overlaps(candidate, other) for other in obstacles)
 
 
 def solve(config, selected, obstacles):
@@ -48,18 +60,25 @@ def search(originals, domains, assigned, moved, unused, ranks, best):
         return
     index = len(assigned)
     if index == len(domains):
-        score = (moved, unused, tuple(ranks))
-        if best[0] is None or score < best[0]:
-            best[:] = [score, deepcopy(assigned)]
+        retain_best(best, assigned, (moved, unused, tuple(ranks)))
         return
     for candidate, waste, rank in domains[index]:
-        if not any(overlaps(candidate, other) for other in assigned):
-            change = set(members(candidate)) != set(members(originals[index]))
+        if conflict_free(candidate, assigned):
+            change = selection_changed(originals[index], candidate)
             search(originals, domains, assigned + [candidate], moved + change,
                    unused + waste, ranks + [rank], best)
 
 
+def retain_best(best, assigned, score):
+    if best[0] is None or score < best[0]:
+        best[:] = [score, deepcopy(assigned)]
+
+
+def selection_changed(old, new):
+    return set(members(old)) != set(members(new))
+
+
 def assignments(originals, candidates):
     return [{'reference': new['reference'], 'table_ids': members(new),
-             'changed': set(members(old)) != set(members(new))}
+             'changed': selection_changed(old, new)}
             for old, new in zip(originals, candidates)]
