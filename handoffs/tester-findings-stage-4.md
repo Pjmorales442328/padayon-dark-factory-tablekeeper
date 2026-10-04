@@ -20,3 +20,11 @@ Each finding was adjudicated against the Stage 4 contract, not accepted by defau
 15. F15 ACCEPTED. Fixture labels are t_1 Window, t_2 Booth, t_3 Terrace.
 16. F16 ACCEPTED. Adoption is POST /series with {anchor_reference, count, interval_weeks}; the same-tab test also now uses a feasible closure (t_1 closed, 21:00 series occurrence can move) per interface-builder 5e60f875.
 17. F17 ACCEPTED. Maintainability compares against FROZEN_STAGE3 (real Stage 3 path), plus owned stdlib approximation; real radon/lizard numbers are reported from the rerun and the builder's regressions (mean complexity 3.44 vs 3.155, min MI 30.65 vs 31.46, longer max function) are NOT softened.
+
+Rerun on ea57303 (api part) exposed six further defects in my own checks, all corrected without weakening any service expectation:
+18. R1 L303 no_feasible: a considered t_2 blocker appears in assignments as unchanged (`changed: false`); expectation now lists it and (moved, unused)=(0,2).
+19. R1 L303 half-open: pair t_1+t_2 is feasible, so no 409; a t_1 booking is added so the pair is blocked.
+20. R1 L298: oracle now receives already-applied closures.
+21. R1 L342: batch-move exceptions are permanent, so flags are [F,T,T,F,T]; only occurrence 0 moves under amend.
+22. R1 L339: native p2 plan was infeasible; closes t_1 FRI 00:00-23:59.
+23. R1 L342: 70-day repair window triggered planning_limit; window is THU 18:00-23:00.

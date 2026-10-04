@@ -149,14 +149,18 @@ class Preview(Base4):
         p = self.ok_replan("t_3")
         self.assertEqual([x["table_ids"] for x in p["assignments"]], [["t_1", "t_2"]])
         # the same booking with a blocker on t_2 that the window does not consider (20:00 starts after 19:30): nothing fits
-        bk(self, self.ada, f"{THU}T20:00", "t_2", 2)
+        blocker = bk(self, self.ada, f"{THU}T20:00", "t_2", 2)
         self.err(self.replan(self.ta, "t_3", inst(THU, "19:00"), inst(THU, "19:30")), 409, "no_feasible_plan")
         self.assertEqual(self.get_res(c["reference"], self.tb)["table_ids"], ["t_3"])
-        # a window starting exactly when the booking ends considers nothing, so it succeeds with an empty plan
-        self.assertEqual(self.ok_replan("t_3", inst(THU, "20:30"), inst(THU, "23:00"))["assignments"], [])
+        # a window starting exactly when c ends does not consider c; the blocker (20:00-21:30) overlaps the window, so it is the
+        # only considered booking and keeps its table ("every confirmed booking overlapping the interval", on any table)
+        p = self.ok_replan("t_3", inst(THU, "20:30"), inst(THU, "23:00"))
+        self.assertEqual(p["assignments"], [{"reference": blocker["reference"], "table_ids": ["t_2"], "changed": False}])
+        self.assertEqual((p["moved_count"], p["unused_seats"]), (0, 2))
 
     def test_L303_a_plan_for_the_overlap_check_is_half_open(self):
         a = bk(self, self.tb, T, "t_3", 6)                                                     # 19:00-20:30 local
+        bk(self, self.ada, T, "t_1", 2)                      # party 6 fits only t_3 or the pair t_1+t_2; the t_1 booking blocks the pair
         self.err(self.replan(self.ta, "t_3", inst(THU, "19:30"), inst(THU, "20:00")), 409, "no_feasible_plan")
         # adjacency: [20:30, 22:00) starts exactly when the booking ends -> nothing considered
         p = self.ok_replan("t_3", inst(THU, "20:30"), inst(THU, "22:00"))
@@ -256,8 +260,9 @@ class Planning(Base4):
     def setUp(self):
         super().setUp()
 
-    def check(self, closure_table, frm, to, expect_none=None, who=None, apply=True):
-        """Compare preview with the oracle for the current state. Returns the preview or None."""
+    def check(self, closure_table, frm, to, expect_none=None, who=None, apply=True, applied=()):
+        """Compare preview with the oracle for the current state. Returns the preview or None.
+        applied: [(table, from, to)] closures already applied through earlier plans (the oracle must know them)."""
         listing = {}
         for tok in (self.ada, self.bob):
             for r in self.all_res(tok):
@@ -273,7 +278,7 @@ class Planning(Base4):
                               "caps": r["accepted_terms"]["capacities"], "current": self.tids(r)})
             else:
                 fixed.append((self.tids(r), s, e))
-        want = oracle(self.TABLES, self.PAIRS, books, fixed, [], (closure_table, f, t))
+        want = oracle(self.TABLES, self.PAIRS, books, fixed, [(c[0], parse(c[1]), parse(c[2])) for c in applied], (closure_table, f, t))
         r = self.replan(self.ta, closure_table, frm, to)
         if want is None:
             self.err(r, 409, "no_feasible_plan")
@@ -359,7 +364,7 @@ class Planning(Base4):
         a = bk(self, self.bob, f"{THU}T19:00", "t_2", 3)
         p1 = self.ok_replan("t_3", inst(THU, "18:00"), inst(THU, "23:00"))
         self.ok_apply(p1["plan_id"])
-        j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"))                      # t_3 closed for the whole day, t_1 too small
+        j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"), applied=[("t_3", inst(THU, "18:00"), inst(THU, "23:00"))])  # t_3 closed all day, t_1 too small
         self.assertIsNone(j)
         self.err(self.replan(self.ta, "t_2"), 409, "no_feasible_plan")
 
@@ -367,13 +372,13 @@ class Planning(Base4):
         a = bk(self, self.bob, f"{THU}T19:00", "t_2", 3)                                  # 19:00-20:30
         p1 = self.ok_replan("t_3", inst(THU, "21:00"), inst(THU, "23:00"))
         self.ok_apply(p1["plan_id"])
-        j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"))
+        j = self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"), applied=[("t_3", inst(THU, "21:00"), inst(THU, "23:00"))])
         self.assertEqual(j["assignments"][0]["table_ids"], ["t_3"], "the t_3 closure starts after the booking ends")
         self.reset()
         a = bk(self, self.bob, f"{THU}T19:00", "t_2", 3)
         p1 = self.ok_replan("t_3", inst(THU, "20:29"), inst(THU, "23:00"))                # overlaps the end of the booking by one minute
         self.ok_apply(p1["plan_id"])
-        self.assertIsNone(self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00")))
+        self.assertIsNone(self.check("t_2", inst(THU, "18:00"), inst(THU, "23:00"), applied=[("t_3", inst(THU, "20:29"), inst(THU, "23:00"))]))
 
     def test_L295_every_confirmed_booking_overlapping_is_considered_and_cancelled_are_not(self):
         a = bk(self, self.bob, T, "t_1", 2)

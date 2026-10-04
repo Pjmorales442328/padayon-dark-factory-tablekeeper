@@ -123,7 +123,7 @@ class Native(Base4):
         self.p1 = p1.json
         sr = self.get_series(s["series_id"], self.bob)
         rec("POST", f"/series/{s['series_id']}/amend", {"expected_revision": sr["revision"], "from_index": 1, "local_time": "20:00"}, self.bob, "n-am")
-        self.p2 = rec("POST", "/restaurants/r_anker/replans", {"table_id": "t_3", "from": inst(FRI, "00:00"), "to": inst(FRI, "23:59")}, self.ada, "n-p2").json
+        self.p2 = rec("POST", "/restaurants/r_anker/replans", {"table_id": "t_1", "from": inst(FRI, "00:00"), "to": inst(FRI, "23:59")}, self.ada, "n-p2").json
         self.p3 = rec("POST", "/restaurants/r_anker/replans", {"table_id": "t_1", "from": inst(THU, "20:30"), "to": inst(THU, "23:00")}, self.ada, "n-p3").json
         rec("POST", "/reservations", {"restaurant_id": "r_anker", "table_id": "t_3", "starts_at_local": f"{add_days(THU, 21)}T22:00", "party_size": 2},
             self.ada, "n-stale")                                                     # p2 and p3 are now stale
@@ -472,7 +472,9 @@ class UpgradeBase:
         d = self.d
         cur = d.call("GET", f"/series/{sid}", token=tok).json
         ex = [o["exception"] for o in cur["occurrences"]]
-        self.assertEqual(ex, [False, False, True, False, False])
+        # index 1 (individual party PATCH), 2 (individual time PATCH) and 4 (reservation-moves batch, ledger 268) are permanent exceptions;
+        # index 3 is cancelled without becoming one (ledger 257); index 0 is the only ordinary eligible member
+        self.assertEqual(ex, [False, True, True, False, True])
         sched = [o["reservation"]["starts_at_local"][:10] for o in cur["occurrences"]]
         r = d.call("POST", f"/series/{sid}/amend", {"expected_revision": cur["revision"], "from_index": 0, "local_time": "20:00"}, token=tok, key="imp-am")
         self.assertEqual(r.status, 201, r)
@@ -481,13 +483,16 @@ class UpgradeBase:
         self.assertEqual([o["reservation"]["starts_at_local"][:10] for o in n["occurrences"]], sched)
         self.assertEqual(n["revision"], cur["revision"] + 1)
         t = [o["reservation"]["starts_at_local"][11:16] for o in n["occurrences"]]
-        self.assertEqual((t[0], t[1], t[3], t[4]), ("20:00", "20:00", cur["occurrences"][3]["reservation"]["starts_at_local"][11:16], "20:00"))
+        old_t = [o["reservation"]["starts_at_local"][11:16] for o in cur["occurrences"]]
+        self.assertEqual(t[0], "20:00", "the only ordinary member moves")
+        self.assertEqual((t[1], t[3], t[4]), (old_t[1], old_t[3], old_t[4]), "exceptions and the cancelled member keep their own times (ledger 321)")
         self.assertEqual(t[2], "20:30", "the imported exception keeps its own time")
-        self.assertEqual(n["occurrences"][3], cur["occurrences"][3], "the cancelled occurrence is untouched")
+        for i in (1, 2, 3, 4):
+            self.assertEqual(n["occurrences"][i], cur["occurrences"][i], f"occurrence {i} is untouched")
         # a repair that moves members keeps scheduled dates and exception flags
         cur = d.call("GET", f"/series/{sid}", token=tok).json
         tb = self.tids_of(cur["occurrences"][0]["reservation"])
-        pl = d.call("POST", "/restaurants/r_anker/replans", {"table_id": tb[0], "from": inst(THU, "00:00"), "to": inst(add_days(THU, 70), "00:00")},
+        pl = d.call("POST", "/restaurants/r_anker/replans", {"table_id": tb[0], "from": inst(THU, "18:00"), "to": inst(THU, "23:00")},
                     token=self.tok_ada, key="imp-rp")
         if pl.status == 201:
             ap = d.call("POST", f"/restaurants/r_anker/replans/{pl.json['plan_id']}/apply", {}, token=self.tok_ada, key="imp-rpa")
