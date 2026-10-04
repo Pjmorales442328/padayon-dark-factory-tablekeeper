@@ -2,6 +2,7 @@
 Dispatch f609d522c75cceea0b91cecbe568b14b162074f3.
 Requirements: handoffs/requirements-stage-1.md, requirements-stage-2.md, requirements-stage-3.md, requirements-stage-4.md.
 Scope: copied owned domain restructuring only before feature gate.
+Current scope: Stage4 feature gate released; implementation committed, independent verification still in progress. Checkboxes record verified outcomes and are not an acceptance claim.
 Plan: centralize existing route/loading imports at module boundaries; preserve inherited behavior, then inherited API/transfer checks and metrics. No features yet.
 - [ ] 1. Implement stage3 only, with inherited stages1/2 API/browser and policies/history/recurrence additions; no existing-product source/docs/schemas.
 - [ ] 2. Complete buildable stage-3 copied from frozenstage-2 contains Dockerfile,RUN.md,every asset;no nested.git/generatedcache committed.
@@ -352,8 +353,10 @@ Plan: centralize existing route/loading imports at module boundaries; preserve i
 - [ ] 347. 50mixedconcurrentreads/writes/reset/export/import/preview/apply/seriesamend serializable,no5xx.
 - [ ] 348. Independentplanningoracle proves everyobjective priority/ownterms/mixedpairs/fixedbookings/closures/adjacency/limits.
 - [ ] 349. Independentchecks everyrestaurantrevisionwritepath/noop/failure/replay/preview/localstaleness andplan/series/anchor races.
-- [ ] 350. Exactisolated --repo --stage4harness claimedstage4,allshippedinherited/newchecks no skips/deselection/edits.
+- [x] 350. Exactisolated --repo --stage4harness claimedstage4,allshippedinherited/newchecks no skips/deselection/edits. First complete feature run:158/158 shipped checks; core-s4-features-harness-first, final rerun after any fixes required.
 - [ ] 351. MeasurePythonradon/lizard/JS/duplicationlimitsagainst frozenStage3;recordstages/rejectionsstart/end/finalacceptedrevisions/contributions/claimpath/openlimits.
 Repeated inherited API/state transfer verified at88686a81f626aec2e8b28cd01266a5acec7b1b20:145/148 API with3 non-domain inherited/environment failures; shippedStage1–3 152/152. Metrics unchanged. Baseline report core-builder-baseline-stage-4.md. Features remain gated.
 
 Gate released e508389f2f7e7b6dd93dc949d05894b5505eb3d3 at18:12:24+08. Implementation task f0a00c08-1415-4bef-95e5-42b4bf84f9e3 in progress. Contract preserved before features; closures/planning/revisions/series-amend/loading boundaries planned.
+
+Feature sources9911384e39df4e3a554f57dfc76b806a976739db now implement all owned293–342 paths: exact own-terms planner, atomic closures/repair history, every inherited mutation restaurant counter, stable scheduled series amendment and validated native/legacy transfer. Service.dispatch preserved and agreed with interface; no UI/check edits. Implementation task completed; private verification4488d1a6-6d97-434b-9bc2-f7c09971992e/shared13 remain in progress. Full first run560/511pass/33fail/16error/0skip; five superseded and detailed check defects kept visible in core-builder-findings-stage-4-first.md. Supplied exact committed runs1e37df2/b6c47cd158/158 claimed4. Final9911384 harness recorded in findings after completion. Focused native repair/series-amend/plan roundtrip+6 original receipts+52 atomic malformed-state refusals passed;302-user reset improved10.13s to5.22s with2 hash workers. Maximum complexity9/file171lines; averageCCN3.44105 and minMI30.65357 regress againstStage3 and remain open. Lines requiring independent optimal-oracle/native/between-request-upgrade proof remain unchecked pending tester fixture corrections. Frozen1–3 diffs clean.
