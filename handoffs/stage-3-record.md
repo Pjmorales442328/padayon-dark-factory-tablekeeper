@@ -1,8 +1,14 @@
-# Stage3 record
+# Stage 3 record
 
 Start2026-10-04T16:06:39+08:00;endpending.
 Frozenstage1 accepted344e085d8e3d0629dcc17fc95f22a43efe2a85d2;frozenstage2 accepted94e7654c4427fa3c087279675edbe1cda4f5a4fc;priorfinalrepo1933b39fc4114990f1540718ef4f44b24fae1eda.
 Allfourseatsconfirmedservingstage3.
 Copy stage2trackedruntimefiles only,avoid generated caches/nestedgit.
 Restructuringgate released2026-10-04T16:31:03+08:00. Corecopyaa9e4a22dcf7d01a62b514fdc733956ef5ca85f8/reportad307fb accepted82fbf29bd0ce25b442487291faf7837eba49b5af;interfacecommittedbaselined06e9bc83013e6fda666477ff863aa19ae8c25e8. Bothjustifiedalreadyadequateboundaries/no-opruntimecopybeforefeatures;interfaceRUNupdatedstage3 andconstrainedimage/browserbaselinepassed. Interfacescopedauditassigned. Frozen1/2unchanged.
-Rejections:none;acceptance/freeze pending.
+Acceptance/freeze pending complete tester evidence and exact reviewer acceptance.
+
+R1 F1 (interface compatibility rejection) opened 2026-10-04T17:00:22+08:00 in coordinator dispatch 9c52d00dec890d988a9419854dced882773f52b7, based on core findings 118bff234a10e6548283913b9f0cc3188bfc7a25, handoffs/core-builder-findings-stage-3-r1.md. Closed 2026-10-04T17:11:11+08:00 by reviewer evidence 1c61626b79979929b51742ad69bf8118e5ba7161, handoffs/reviewer-findings-stage-3-8093f21.md. Duration 10 minutes 49 seconds. Interface fix 8093f21e49c005e03d770751e0f222a060c224ca treats only legacy /policies 404 as an empty published policy list; other search errors remain visible. Reviewer proved same-tab stopped-source upgrades against both frozen Stage 1 and Stage 2, 17/17 checks each. Earlier R1 review 2bb3584b7e6fa447e5e64b022a304255842efd2a remains inspectable.
+
+Reviewer found no defects in exact candidate 8093f21 and is ready to accept after complete committed tester evidence. Own isolated harness: Stage 1 120/120, Stage 2 25/25, Stage 3 7/7; zero skips/deselections; claimed stage: 3; expected Stage 4 failure. Reviewer report C:/Users/Prince/AppData/Local/Temp/rv/h6/report.json. Clean no-network 2 CPU/2 GiB image, 76 browser checks, 375px/1280px and axe pass. Frozen stages and tracked worktrees unchanged.
+
+F10 complexity increase is a reviewer advisory, not rejection: mean CC 2.81 to 3.15; max CC9, largest file171 lines and minimum MI31.46 unchanged; lizard average CCN2.8 to3.2, zero warnings; JS2.7. Remaining check corrections F2-F6, historical failure counts, final tester metrics and final record will be recorded from committed evidence. Kickoff manifest mismatch, chunked-body400, reset scaling and unavailable duplicate-block metrics remain visible.
