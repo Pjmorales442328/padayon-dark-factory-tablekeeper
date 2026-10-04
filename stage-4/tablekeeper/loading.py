@@ -3,7 +3,7 @@ from copy import deepcopy
 from datetime import datetime
 from .validation import (Failure, fields, array, identifier, reference, text, require,
                          timestamp, unique)
-from .accounts import user_record
+from .accounts import user_records
 from .restaurants import restaurant_record
 from .bookings import values, occupancy
 from .receipts import record_identity
@@ -63,7 +63,7 @@ def preserve_record(record, data):
 
 
 def records(state, data, importing):
-    users = [user_record(u, importing) for u in data["users"]]
+    users = user_records(data['users'], importing)
     configs = [restaurant_record(r) for r in data["restaurants"]]
     unique(users, "id")
     unique(users, "email")

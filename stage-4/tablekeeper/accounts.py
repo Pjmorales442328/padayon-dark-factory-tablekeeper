@@ -2,6 +2,7 @@
 import hashlib
 import hmac
 import secrets
+from concurrent.futures import ThreadPoolExecutor
 from .validation import fields, email, password, text, identifier, require
 from .identifiers import unused
 
@@ -42,6 +43,14 @@ def user_record(data, importing=False):
     if not importing:
         record["password_hash"] = hash_password(record.pop("password"))
     return record
+
+
+def user_records(source, importing):
+    if importing:
+        return [user_record(data, True) for data in source]
+    # Two independent hashes use the runtime's two CPUs; map preserves fixture order.
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        return list(pool.map(user_record, source))
 
 
 def session(state, user):
