@@ -1,3 +1,3 @@
 # Stage 4 record
-Start2026-10-04T17:55:59+08:00;endpending. FrozenStage1/2/3accepted344e085/94e7654/8093f21;priorfinalf73343e. CopiedtrackedStage3only,no.git/cache. Baselinegatepending;rejectionsnone;acceptancepending.
-
+Start2026-10-04T17:55:59+08:00;endpending. FrozenStage1/2/3accepted344e085/94e7654/8093f21;priorfinalf73343e. CopiedtrackedStage3only,no.git/cache. Rejectionsnone;featureacceptancepending.
+FeaturegateRELEASED2026-10-04T18:12:24+08:00 afterreviewerbaselineacceptancesa3982540f037a60ff47862d0c448a6886467469f, handoffs/reviewer-findings-baselines-stage-4.md. Core88686a81f626aec2e8b28cd01266a5acec7b1b20/evidence6b2a372;interface8e4e161166d4cae499a587acd723d50d8b39a0a2/evidencefaf8825. Shortimportboundaryrestructure andinterfacejustifiedno-op/RUNupdates accepted;frozen1–3unchanged. BaselineStage4absentfeaturesfailedexpected,Stage1–3passed;3disclosedinherited/environmentbaselineassertions remainvisible;notcleanfullfeatureproof.
