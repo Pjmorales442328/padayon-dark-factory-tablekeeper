@@ -37,3 +37,8 @@ Rule: no Stage 4 acceptance from a baseline. Full candidate review starts only o
 
 ## Known carried advisories
 Chunked bodies 400; reset and availability cost scale with state size; duplicate-block metrics unavailable; kickoff manifest mismatch (harness/cli.py, docs/participant-guide.md) predates the run; untracked __pycache__ must never be staged; F10 mean-CC growth (service.route/private, loading.booking_record to simplify).
+
+## R1 audit progress (exact 9911384; findings in reviewer-findings-stage-4-r1-9911384.md)
+- [x] 7 clean build PASS; [x] 8 harness PASS (claimed stage 4); [x] 10 transfer PASS (stage-3 source stopped); [x] 11 maintainability FAIL (M1); [x] 12 reading; [x] 13 screens 76/76; [x] 14 frozen folders unchanged.
+- [x] 15-21 API probes (297 pass) and optimiser oracle (~1050 random cases, 0 mismatches); [x] 21 157 bad-import mutations, no 5xx.
+- [ ] 9 / 5 tester ea57303 coverage review; [ ] 22 50-way mixed load; [ ] final acceptance (blocked by M1 and the above).
