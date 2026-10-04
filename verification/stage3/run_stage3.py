@@ -21,6 +21,8 @@ SUPERSEDED = {
         "frozen stage-1 strict slot key set (stage 2 added available_options); replaced by stage-3 test_s3_explain_policy.Explain.test_L200_*",
     "test_b_booking.Create.test_L062_shape":
         "frozen stage-1 strict reservation key set (stage 2/3 added table_ids, revision, accepted_terms); replaced by test_s3_booking_history.Terms.test_L062_L230_*",
+    "test_b_booking.Cancel.test_L075_cancel_frees":
+        "frozen stage-1 assertion that a cancelled booking equals the original except status (stage 3: revision 1 -> 2 on cancel by contract); replaced by test_s3_booking_history.Amend.test_L075_L076_L234_*",
     "test_s2_api.Create.test_L062_L166_shapes":
         "frozen stage-2 strict reservation key set (stage 3 adds revision and accepted_terms); replaced by test_s3_booking_history.Terms.test_L062_L230_*",
     "test_s2_transfer.TestUpgrade.test_L154_L184_references_resolve_and_singletons_gain_table_ids":
