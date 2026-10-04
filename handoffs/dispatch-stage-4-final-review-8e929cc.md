@@ -1,6 +1,6 @@
 # Stage4 corrected candidate final review
 Repository C:/Users/Prince/Documents/darkfactory/band-work/result.
-Exactcandidate8e929cc6112064969df170d443ecf2cdcd90c7f0; testerchecks/evidence73b776323ed88b325121f94821e1897bfd0e152b author tester, absolute handoffs/tester-report-stage-4-r2.md and handoffs/tester-findings-stage-4.md items1–23.
+Exactcandidate8e929cc6112064969df170d443ecf2cdcd90c7f0; testerreport73b776323ed88b325121f94821e1897bfd0e152b; finalexecutedchecks fbe5efcd87db9ae2ef4c87a459c6d3b1f64d157c author tester, absolute handoffs/tester-report-stage-4-r2.md and handoffs/tester-findings-stage-4.md items1–23.
 Reviewer: independentlyreviewexact8e929cc against351ledger/fullfourcontractsbelow; remeasureM1 againstactualfrozenStage3 SAMEtools/aggregation. PriorunwaivedM1findings0638b7dc195841c2e8cc2ff7fb5097e4e428225c at handoffs/reviewer-findings-stage-4-r1-9911384.md; routing a9b070f. Verifymeaningfulrefactors/no metricpadding andretainedplanningoracle/closure/terms/history/seriesdates/loading/receipts/races/container/browser/source-stopbehavior. Auditcorrectedcoverage and50wayload. Testerreports meanCC3.146->3.116,minMI31.458unchanged,meanCCN3.155->3.122,maxfunction25unchanged,maxCC9/file171; mustbeobservedbyyoubeforeM1closure. Completeevidence has no newAPI/browserdefects but historicalfailuresvisible; nevercallcleanfullsuite.
 Exactharness4 reports120/25/7/6pass,claimstage4; evidence C:/Users/Prince/Documents/darkfactory/band-work/checks/r2-8e929cc/. Independentparts API97/0failerrskip,browser6/6,inherited1 178(3superseded),inherited2 135(2superseded),inherited3 153(1manifest+3superseded). Allsuperseded listedvisiblywithpassingStage4replacements; all351linescovered.
 Core-builder: completeyourassigned fullcommitted independent/harnessverification on8e929cc,sourceequivalencebefore/after,metrics andM1refactorrationale; commitreportexactfullhash/evidence andalltimingbounds. Awaitreviewerdecision,notselfaccept.
@@ -1470,7 +1470,6 @@ unchanged items.
 Replays return that original response with 200, even after amendments or cancellations.
 No-op moves retain all existing values. Export/import preserves successful batch receipts
 as well as the resulting bookings. No batch UI is required.
-
 
 
 
