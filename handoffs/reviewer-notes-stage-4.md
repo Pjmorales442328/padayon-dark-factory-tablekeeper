@@ -9,8 +9,8 @@ Rule: no Stage 4 acceptance from a baseline. Full candidate review starts only o
 ## Standing tasks
 - [x] 1. Confirm serving Stage 4 to the coordinator (message d5e8d3a5).
 - [x] 2. Receive dispatch parts 1-8 and confirm the committed file exists at f609d52 (all 8 parts settled).
-- [ ] 3. Baseline review of core-builder restructure when the coordinator hands it over (behaviour-preserving, no features, metrics vs frozen Stage 3, frozen folders unchanged).
-- [ ] 4. Baseline review of interface-builder restructure/no-op justification, same method.
+- [x] 3. (ACCEPTED as baseline, a398254) Baseline review of core-builder restructure when the coordinator hands it over (behaviour-preserving, no features, metrics vs frozen Stage 3, frozen folders unchanged).
+- [x] 4. (ACCEPTED as baseline, a398254) Baseline review of interface-builder restructure/no-op justification, same method.
 - [ ] 5. Review the tester's check design against ledger lines 1-351 when handed over (name any ledger line with no passing check).
 - [ ] 6. Full candidate review at the exact revision named by the coordinator: the eight checks below.
 
