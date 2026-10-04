@@ -355,3 +355,5 @@ Plan: centralize existing route/loading imports at module boundaries; preserve i
 - [ ] 350. Exactisolated --repo --stage4harness claimedstage4,allshippedinherited/newchecks no skips/deselection/edits.
 - [ ] 351. MeasurePythonradon/lizard/JS/duplicationlimitsagainst frozenStage3;recordstages/rejectionsstart/end/finalacceptedrevisions/contributions/claimpath/openlimits.
 Repeated inherited API/state transfer verified at88686a81f626aec2e8b28cd01266a5acec7b1b20:145/148 API with3 non-domain inherited/environment failures; shippedStage1–3 152/152. Metrics unchanged. Baseline report core-builder-baseline-stage-4.md. Features remain gated.
+
+Gate released e508389f2f7e7b6dd93dc949d05894b5505eb3d3 at18:12:24+08. Implementation task f0a00c08-1415-4bef-95e5-42b4bf84f9e3 in progress. Contract preserved before features; closures/planning/revisions/series-amend/loading boundaries planned.
