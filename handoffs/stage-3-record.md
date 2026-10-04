@@ -1,11 +1,11 @@
 # Stage 3 record
 
-Start2026-10-04T16:06:39+08:00;endpending.
+Start2026-10-04T16:06:39+08:00;end2026-10-04T17:17:42+08:00;elapsed1h11m03s.
 Frozenstage1 accepted344e085d8e3d0629dcc17fc95f22a43efe2a85d2;frozenstage2 accepted94e7654c4427fa3c087279675edbe1cda4f5a4fc;priorfinalrepo1933b39fc4114990f1540718ef4f44b24fae1eda.
 Allfourseatsconfirmedservingstage3.
 Copy stage2trackedruntimefiles only,avoid generated caches/nestedgit.
 Restructuringgate released2026-10-04T16:31:03+08:00. Corecopyaa9e4a22dcf7d01a62b514fdc733956ef5ca85f8/reportad307fb accepted82fbf29bd0ce25b442487291faf7837eba49b5af;interfacecommittedbaselined06e9bc83013e6fda666477ff863aa19ae8c25e8. Bothjustifiedalreadyadequateboundaries/no-opruntimecopybeforefeatures;interfaceRUNupdatedstage3 andconstrainedimage/browserbaselinepassed. Interfacescopedauditassigned. Frozen1/2unchanged.
-Acceptance/freeze pending complete tester evidence and exact reviewer acceptance.
+ACCEPTED and FROZEN source8093f21e49c005e03d770751e0f222a060c224ca, reviewer decision07d18b04232d66ddc6330cc7f8c092c1804e64bc. Complete final outcome, contributions, corrections, measurements and limitations: handoffs/final-report-stage-3.md. Tester evidence0c717ab1bd3113dc662f0e06417220a4113ae7a9; all292lines covered;466tests,6visible non-service failures,0errors/skips; not clean. HarnessclaimedStage3,120+25+7pass,expectedStage4fail. Source/frozen working and committed diffs empty at final verification; caches unstaged.
 
 R1 F1 (interface compatibility rejection) opened 2026-10-04T17:00:22+08:00 in coordinator dispatch 9c52d00dec890d988a9419854dced882773f52b7, based on core findings 118bff234a10e6548283913b9f0cc3188bfc7a25, handoffs/core-builder-findings-stage-3-r1.md. Closed 2026-10-04T17:11:11+08:00 by reviewer evidence 1c61626b79979929b51742ad69bf8118e5ba7161, handoffs/reviewer-findings-stage-3-8093f21.md. Duration 10 minutes 49 seconds. Interface fix 8093f21e49c005e03d770751e0f222a060c224ca treats only legacy /policies 404 as an empty published policy list; other search errors remain visible. Reviewer proved same-tab stopped-source upgrades against both frozen Stage 1 and Stage 2, 17/17 checks each. Earlier R1 review 2bb3584b7e6fa447e5e64b022a304255842efd2a remains inspectable.
 
