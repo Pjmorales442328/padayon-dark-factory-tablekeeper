@@ -19,7 +19,7 @@ def fx_terms(rest_fixture):
             "opening_hours": rest_fixture["opening_hours"], "capacities": {t["id"]: t["capacity"] for t in rest_fixture["tables"]}}
 
 
-class UpgradeBase(unittest.TestCase):
+class UpgradeBase:
     err = Base3.err
     SRC_DIR = None
     SRC_FIXTURE = staticmethod(fixture2)
@@ -185,7 +185,7 @@ class UpgradeBase(unittest.TestCase):
         self.assertEqual(len({n["reference"] for n in new}), 5)
 
 
-class TestUpgradeFromStage2(UpgradeBase):
+class TestUpgradeFromStage2(UpgradeBase, unittest.TestCase):
     SRC_DIR = FROZEN_STAGE2
 
     def test_L184_L152_stage2_pair_bookings_and_receipts_survive(self):
@@ -211,7 +211,7 @@ class TestUpgradeFromStage2(UpgradeBase):
         self.assertEqual(h["changes"][0], {"field": "table_ids", "from": ["t_1", "t_2"], "to": ["t_3"]})
 
 
-class TestUpgradeFromStage1(UpgradeBase):
+class TestUpgradeFromStage1(UpgradeBase, unittest.TestCase):
     SRC_DIR = FROZEN_STAGE1
     SRC_FIXTURE = staticmethod(stage1_fixture)
 
