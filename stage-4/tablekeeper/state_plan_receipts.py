@@ -68,13 +68,17 @@ def validate_amend(state, receipt, sid):
 def coverage(state):
     previews = [r['response']['plan_id'] for r in state['receipts']
                 if r['path'].endswith('/replans')]
-    applies = [r['response']['plan_id'] for r in state['receipts']
-               if r['path'].endswith('/apply')]
     require(set(previews) == {p['plan_id'] for p in state['plans']} and len(previews) == len(set(previews)),
             'Preview receipt coverage')
+    application_coverage(state)
+    collective_coverage(state)
+
+
+def application_coverage(state):
+    applies = [r['response']['plan_id'] for r in state['receipts']
+               if r['path'].endswith('/apply')]
     require(set(applies) == {p['plan_id'] for p in state['plans'] if p['applied']} and
             len(applies) == len(set(applies)), 'Application receipt coverage')
-    collective_coverage(state)
 
 
 def collective_coverage(state):

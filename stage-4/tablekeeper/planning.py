@@ -9,14 +9,18 @@ from . import closures
 
 
 def considered(state, config, closure):
-    confirmed = [r for r in state['reservations']
-                 if r['restaurant_id'] == config['id'] and r['status'] == 'confirmed']
+    confirmed = confirmed_bookings(state, config['id'])
     selected = sorted((r for r in confirmed if closures.intersects(r, closure)),
                       key=lambda r: r['reference'])
     fixed = [r for r in confirmed if not closures.intersects(r, closure)]
     require(len(config['tables']) <= 6 and len(config.get('combinable', [])) <= 4 and
             len(selected) <= 6, 'Planning limits exceeded', 422, 'planning_limit')
     return deepcopy(selected), deepcopy(fixed)
+
+
+def confirmed_bookings(state, rid):
+    return [r for r in state['reservations']
+            if r['restaurant_id'] == rid and r['status'] == 'confirmed']
 
 
 def choices(config, record, obstacles):

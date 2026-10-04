@@ -74,15 +74,19 @@ def validate_collective(state, agreement):
 
 
 def repair_histories(state):
-    from .replans import owned
     for ref, entries in state['histories'].items():
         for event in entries:
             if event['event'] != 'reassigned':
                 continue
-            record = next(r for r in state['reservations'] if r['reference'] == ref)
-            plan = owned(state, record['restaurant_id'], event['plan_id'])
-            assignment = next((a for a in plan['assignments'] if a['reference'] == ref), None)
-            require(plan['applied'] and assignment is not None and assignment['changed'],
-                    'Repair event missing applied plan')
-            require(canonical(event['changes'][0]['to']) == canonical(assignment['table_ids']),
-                    'Repair plan selection mismatch')
+            repair_event(state, ref, event)
+
+
+def repair_event(state, ref, event):
+    from .replans import owned
+    record = next(r for r in state['reservations'] if r['reference'] == ref)
+    plan = owned(state, record['restaurant_id'], event['plan_id'])
+    assignment = next((a for a in plan['assignments'] if a['reference'] == ref), None)
+    require(plan['applied'] and assignment is not None and assignment['changed'],
+            'Repair event missing applied plan')
+    require(canonical(event['changes'][0]['to']) == canonical(assignment['table_ids']),
+            'Repair plan selection mismatch')
