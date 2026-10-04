@@ -738,3 +738,12 @@ The exact review routing is `6160da85da1ee7d23124f545945f710b0b1d375a`; committe
 - Packaging: `docker build --no-cache -t tablekeeper:stage-4-iface-9911384 .\stage-4` passed. Ran the image with `--network none --cpus=2 --memory=2g -e PORT=18084`; `/health`, `/`, `/signup`, `/login`, `/lookup`, `/static/app.js`, and `/static/site.css` all returned 200 with the expected content types. Build log is `checks/stage4-interface-integrated-9911384/docker-build.log` and the constrained runtime was removed after checking.
 
 Evidence is scoped to interface compatibility and packaging. Full Stage 4 acceptance remains open pending the complete all-351-line independent suite, exact isolated harness, remaining core/reviewer work, and coordinator review.
+
+## R2 maintainability candidate browser rerun
+
+- Exact core candidate: `8e929cc6112064969df170d443ecf2cdcd90c7f0`; tester checks: `73b776323ed88b325121f94821e1897bfd0e152b`. The current HEAD is the tester checks commit, and `git diff --stat 8e929cc6112064969df170d443ecf2cdcd90c7f0 HEAD -- stage-4` returned no changes, so the browser run exercised the exact core source.
+- Command from `verification/stage4` with supplied harness interpreter and `REPO`/`S4_DIR` set to the Stage 4 checkout: `run_stage4.py --part browser --out C:/Users/Prince/Documents/darkfactory/band-work/checks/r2-8e929cc-interface/browser`. Result: 6 run, 6 passed, 0 failures, 0 errors, 0 skips, 0 superseded; runner log says 17.931 seconds.
+- The suite included applied-plan browser checks at desktop and phone sizes, closed-table refusal, booking to an open table, and `test_L344_L343_L341_browser_survives_real_stage3_to_stage4_upgrade`, which passed with the actual Stage 3-to-Stage 4 import setup.
+- Full log and per-process service logs are outside the repository at `C:/Users/Prince/Documents/darkfactory/band-work/checks/r2-8e929cc-interface/browser`.
+
+This is interface verification only. Acceptance remains open pending the complete independent suite and review.
