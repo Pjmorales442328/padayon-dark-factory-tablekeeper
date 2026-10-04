@@ -42,3 +42,11 @@ Chunked bodies 400; reset and availability cost scale with state size; duplicate
 - [x] 7 clean build PASS; [x] 8 harness PASS (claimed stage 4); [x] 10 transfer PASS (stage-3 source stopped); [x] 11 maintainability FAIL (M1); [x] 12 reading; [x] 13 screens 76/76; [x] 14 frozen folders unchanged.
 - [x] 15-21 API probes (297 pass) and optimiser oracle (~1050 random cases, 0 mismatches); [x] 21 157 bad-import mutations, no 5xx.
 - [ ] 9 / 5 tester ea57303 coverage review; [ ] 22 50-way mixed load; [ ] final acceptance (blocked by M1 and the above).
+
+## R2 audit of 8e929cc (done)
+- [x] Clean constrained build; exact harness (checks/reviewer-s4-8e929cc, claimed stage 4)
+- [x] 297 probes, oracle 3x200, 157 bad imports, history mutations, 50-way load
+- [x] Stopped-source transfer and same-tab browser upgrade; 76 browser checks at 375/1280 with axe
+- [x] M1 re-measured, closed; diff read; frozen folders empty diff
+- [x] Tester coverage 351/351 reviewed; T1 (unlisted inherited3 error) recorded as non-blocking
+- Decision file: handoffs/reviewer-findings-stage-4-r2-8e929cc.md
