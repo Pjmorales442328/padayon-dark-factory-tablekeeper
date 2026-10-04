@@ -18,6 +18,10 @@ Only `stage-3/static/app.js` and `stage-3/static/grid.js` were changed for this 
 
 The default Playwright browser install was absent; I used the supplied Chromium 1228 executable recorded in the baseline evidence. Early reset attempts used an invalid fixture shape while the core files were still being copied forward; the corrected fixture and checks passed. No browser package or runtime dependency was installed.
 
-## Remaining integration evidence
+## Same-tab upgrade evidence
 
-The full-candidate same-tab Stage 2-to-Stage 3 export/import test remains pending. The core service implementation is still changing in the shared worktree; I will run the source-stop, port-closure, import, retained-session and same-key retry proof against its committed candidate before completing the interface task. This report does not claim full Stage 3 acceptance.
+Against Stage 3 service revision `118bff234a10e6548283913b9f0cc3188bfc7a25`, the supplied interpreter ran `checks/stage3-interface-upgrade/upgrade-proof.py`. It started the Stage 2 service as an independent process on port `18444`, created single and pair bookings plus a batch swap receipt, signed in through the Stage 2 browser, and submitted a booking whose server response was deliberately dropped after commit. The export remained in the test controller's memory.
+
+The script stopped the Stage 2 process and verified with `netstat -ano -p tcp` that port `18444` had no listener before starting the independent Stage 3 process on that same port and importing the export. Import returned 204. In the existing browser tab, without navigation or reload, the account header, form values and session-storage pending body/key remained; an unchanged retry returned the original Stage 2 reference with HTTP 200 and removed the uncertainty state. The pre-upgrade single and pair references remained visible with the old token, and the successful Stage 2 single, pair and batch-move receipts replayed with their exact original response objects. Pair lookup showed both human table labels. No page errors or horizontal overflow occurred at 375px.
+
+Logs, script and screenshot are outside the repository at `C:/Users/Prince/Documents/darkfactory/band-work/checks/stage3-interface-upgrade/`. The export itself was never written to disk. This completes the interface compatibility work assigned here; it is not a full Stage 3 acceptance claim.
