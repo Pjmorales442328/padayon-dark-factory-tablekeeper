@@ -3,7 +3,7 @@
 Dispatch: `f854261b07c28e247ba7a2bfc6ee74b1af599936`  
 Feature contract: `fc078b6fbf6ed532bcd08bb6e1f417e9b47c4cca`  
 Frozen Stage 1: `344e085d8e3d0629dcc17fc95f22a43efe2a85d2`  
-Interface source revision: `a1ea8b3c88f1810dbcbec78d9e36941406ac2378` plus the follow-up recorded in this update.
+Interface source revision: `a1ea8b3c88f1810dbcbec78d9e36941406ac2378` and follow-up `9dffff30915a1ed1ccf62ac3a6cccffce2cb30c8`.
 
 ## Files
 
