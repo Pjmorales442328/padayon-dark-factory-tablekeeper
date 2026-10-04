@@ -4,7 +4,7 @@ Dispatch: 5140d0b4a04e71c478419d9a820ee15854ce778f
 Baseline target: frozen stage-2 source 94e7654c4427fa3c087279675edbe1cda4f5a4fc
 Requirement ledger: handoffs/ledger-stage-3.md
 
-Status: baseline restructuring only; do not implement Stage 3 behavior before coordinator gate release.
+Status: coordinator released the feature gate at 2026-10-04T16:31:03+08:00. Feature compatibility work is in progress; the Stage 2-to-Stage 3 source-stop/import proof remains pending the committed core candidate. See `handoffs/interface-builder-feature-stage-3.md` for this checkpoint.
 Pre-notes intake evidence: read-only comparisons confirmed stage-1 and stage-2 trees match their accepted revisions; these checks occurred before this checklist was written.
 
 ## Numbered requirement tracking

@@ -1,6 +1,6 @@
 import { escapeHTML, labelsFor, setKey } from "/static/common.js";
 
-export function renderAvailability(area, query, result, restaurant, choose) {
+export function renderAvailability(area, query, result, restaurant, policy, choose) {
   if (!result.slots?.length) {
     area.innerHTML = '<div class="section-heading"><div><p class="eyebrow">Your evening</p><h2>Availability</h2></div></div><div class="empty-state" data-testid="no-slots"><h3>A quiet day</h3><p>This restaurant is closed on that date. Try another day.</p></div>';
     return;
@@ -8,7 +8,8 @@ export function renderAvailability(area, query, result, restaurant, choose) {
   const tables = restaurant.tables || [];
   const tableMap = new Map(tables.map(table => [table.id, table]));
   const pairs = (restaurant.combinable || []).filter(pair => Array.isArray(pair) && pair.length === 2 && pair.every(id => tableMap.has(id)) && pair[0] !== pair[1]);
-  const rows = result.slots.map(slot => renderSlot(slot, query, restaurant, tables, tableMap, pairs));
+  const capacities = policy?.capacities || Object.fromEntries(tables.map(table => [table.id, table.capacity]));
+  const rows = result.slots.map(slot => renderSlot(slot, query, restaurant, tables, pairs, capacities));
   area.innerHTML = `<div class="section-heading"><div><p class="eyebrow">${escapeHTML(restaurant.name)}</p><h2>Choose a time</h2><p>${escapeHTML(query.date)} · party of ${escapeHTML(query.party_size)}</p></div></div><div class="availability-list" data-testid="availability-grid">${rows.join("")}</div>`;
   area.querySelectorAll(".slot-cell").forEach(button => {
     button.addEventListener("click", () => {
@@ -17,13 +18,13 @@ export function renderAvailability(area, query, result, restaurant, choose) {
   });
 }
 
-function renderSlot(slot, query, restaurant, tables, tableMap, pairs) {
+function renderSlot(slot, query, restaurant, tables, pairs, capacities) {
   const time = slot.starts_at_local.slice(11, 16);
   const singles = new Set(slot.available_table_ids || []);
   const options = new Set((slot.available_options || []).map(option => setKey(option.table_ids || [])));
-  const cells = tables.map(table => cellMarkup([table.id], time, table.capacity, singles.has(table.id), restaurant));
+  const cells = tables.map(table => cellMarkup([table.id], time, capacities[table.id], singles.has(table.id), restaurant));
   pairs.forEach(pair => {
-    const capacity = pair.reduce((sum, id) => sum + tableMap.get(id).capacity, 0);
+    const capacity = pair.reduce((sum, id) => sum + capacities[id], 0);
     if (capacity >= Number(query.party_size)) cells.push(cellMarkup(pair, time, capacity, options.has(setKey(pair)), restaurant));
   });
   return `<article class="slot-row"><time class="slot-time" datetime="${escapeHTML(slot.starts_at)}">${escapeHTML(time)}</time><div class="slot-options">${cells.join("")}</div></article>`;

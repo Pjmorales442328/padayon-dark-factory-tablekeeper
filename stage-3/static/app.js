@@ -96,22 +96,37 @@ async function runSearch(query, preserveForm) {
   const area = document.querySelector("#availability-area");
   area.innerHTML = '<p class="status-line" role="status">Looking for a table…</p>';
   let restaurant;
+  let policy;
   let result;
   try {
     const params = new URLSearchParams(query);
-    restaurant = state.restaurant?.id === query.restaurant_id
-      ? state.restaurant
-      : await readResponse(await api(`/restaurants/${encodeURIComponent(query.restaurant_id)}`));
-    result = await readResponse(await api(`/availability?${params}`));
+    const restaurantRequest = state.restaurant?.id === query.restaurant_id
+      ? Promise.resolve(state.restaurant)
+      : api(`/restaurants/${encodeURIComponent(query.restaurant_id)}`).then(readResponse);
+    const [loadedRestaurant, policyData, availability] = await Promise.all([
+      restaurantRequest,
+      api(`/restaurants/${encodeURIComponent(query.restaurant_id)}/policies`).then(readResponse),
+      api(`/availability?${params}`).then(readResponse)
+    ]);
+    restaurant = loadedRestaurant;
+    policy = policyForDate(policyData.policies || [], query.date);
+    result = availability;
   } catch (error) {
     if (sequence === state.sequence) throw error;
     return;
   }
   if (sequence !== state.sequence) return;
   state.restaurant = restaurant;
-  state.search = { query, result, restaurant };
-  renderAvailability(document.querySelector("#availability-area"), query, result, restaurant, chooseCell);
+  state.search = { query, result, restaurant, policy };
+  renderAvailability(document.querySelector("#availability-area"), query, result, restaurant, policy, chooseCell);
   if (preserveForm && state.selection) markSelection(state.selection);
+}
+
+function policyForDate(policies, date) {
+  return policies
+    .filter(policy => typeof policy.effective_from === "string" && policy.effective_from <= date)
+    .sort((left, right) => left.effective_from.localeCompare(right.effective_from) || left.policy_version - right.policy_version)
+    .at(-1) || null;
 }
 
 function chooseCell(ids, time) {
