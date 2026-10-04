@@ -105,7 +105,7 @@ async function runSearch(query, preserveForm) {
       : api(`/restaurants/${encodeURIComponent(query.restaurant_id)}`).then(readResponse);
     const [loadedRestaurant, policyData, availability] = await Promise.all([
       restaurantRequest,
-      api(`/restaurants/${encodeURIComponent(query.restaurant_id)}/policies`).then(readResponse),
+      loadPolicies(query.restaurant_id),
       api(`/availability?${params}`).then(readResponse)
     ]);
     restaurant = loadedRestaurant;
@@ -120,6 +120,15 @@ async function runSearch(query, preserveForm) {
   state.search = { query, result, restaurant, policy };
   renderAvailability(document.querySelector("#availability-area"), query, result, restaurant, policy, chooseCell);
   if (preserveForm && state.selection) markSelection(state.selection);
+}
+
+async function loadPolicies(restaurantId) {
+  try {
+    return await readResponse(await api(`/restaurants/${encodeURIComponent(restaurantId)}/policies`));
+  } catch (error) {
+    if (error.status === 404) return { policies: [] };
+    throw error;
+  }
 }
 
 function policyForDate(policies, date) {
