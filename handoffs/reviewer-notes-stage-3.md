@@ -44,7 +44,7 @@
 - [x] 40. Health, reset, signup, login, restaurant list/detail, availability, export and import are public.
 - [x] 41. Other endpoints require bearer authentication; permitted-resource restrictions use specified 403/404 codes.
 - [x] 42. Another guest and anonymous caller receive 404 not_found for someone else's booking; do not expose existence.
-- [ ] 43. Idempotency applies to reservations,reservation-moves,restaurant policy publication and series creation.
+- [x] (API audit 118bff2) 43. Idempotency applies to reservations,reservation-moves,restaurant policy publication and series creation.
 - [x] 44. Receipt identity scopes user, method, path and key; different users do not interfere.
 - [x] 45. Same key/body on another path is independent and succeeds normally.
 - [x] 46. Resolve receipts after JSON-object parsing and authentication, before field/current-resource validation.
@@ -63,7 +63,7 @@
 - [x] 59. Each slot has starts_at_local, offset starts_at, available_table_ids in fixture order.
 - [x] 60. Available tables have capacity >= party_size and no overlapping confirmed reservation.
 - [x] 61. Fully occupied slots still appear with empty table list; closed day returns empty slots.
-- [ ] 62. Create supports table_id/table_ids and returns stage2shape plus revision1 and entire selected accepted_terms snapshot; old receipt replays stay original.
+- [x] (API audit 118bff2) 62. Create supports table_id/table_ids and returns stage2shape plus revision1 and entire selected accepted_terms snapshot; old receipt replays stay original.
 - [x] 63. Unknown restaurant/table or table outside restaurant gives 404 not_found.
 - [x] 64. Occupancy uses restaurant plus table ID; table IDs may repeat in different restaurants.
 - [x] 65. Confirmed occupancy is half-open absolute [start,start+duration); adjacent bookings do not overlap.
@@ -76,19 +76,19 @@
 - [x] 72. Reservation ID is globally unique, immutable across changes; owner,restaurant and created_at preserved.
 - [x] 73. Reservation list includes only caller's confirmed/cancelled bookings, starts_at descending, exact create shapes; empty list supported.
 - [x] 74. Reference lookup returns own booking or 404 for absent/invisible booking.
-- [ ] 75. First cancel returns200 cancelledstate, increments booking revision once, adds one cancelled history entry with emptychanges, frees all occupancy.
-- [ ] 76. Repeat cancel returns same currentstate200 and changes no booking/series/history counters,even aftercutoff.
-- [ ] 77. Cancel at/within accepted_terms cutoff or after currentstart409 cutoff_passed.
+- [x] (API audit 118bff2) 75. First cancel returns200 cancelledstate, increments booking revision once, adds one cancelled history entry with emptychanges, frees all occupancy.
+- [x] (API audit 118bff2) 76. Repeat cancel returns same currentstate200 and changes no booking/series/history counters,even aftercutoff.
+- [x] (API audit 118bff2) 77. Cancel at/within accepted_terms cutoff or after currentstart409 cutoff_passed.
 - [x] 78. PATCH accepts table_id or table_ids,starts_at_local,party_size; omitted fields retained; both table selectors invalid; no key required.
-- [ ] 79. PATCH checks optional expected_revision stale/type/range first,then current old acceptedcutoff and confirmedstatus,then full resultingfields under resultingdate policy.
+- [x] (API audit 118bff2) 79. PATCH checks optional expected_revision stale/type/range first,then current old acceptedcutoff and confirmedstatus,then full resultingfields under resultingdate policy.
 - [x] 80. Successful PATCH releases/reserves together; failure preserves booking/occupancy.
-- [ ] 81. No-op amendment including reversedpair returns200 retaining terms,end,booking+series revisions and history;still confirmed/editable required.
+- [x] (API audit 118bff2) 81. No-op amendment including reversedpair returns200 retaining terms,end,booking+series revisions and history;still confirmed/editable required.
 - [x] 82. Spring-gap times absent in availability and rejected on create/amend.
 - [x] 83. Fall-fold times resolve first occurrence only, appear once, second occurrence not bookable.
 - [x] 84. Duration arithmetic is absolute time; ends_at follows resulting local offset, including fold example.
 - [x] 85. Berlin 2026-03-29 and 2026-10-25 transitions handled with IANA offsets.
 - [x] 86. New York 2026-03-08 and 2026-11-01 transitions handled with IANA offsets.
-- [ ] 87. Export returns200 tracktablekeeper,format_version1,stateobject;preserves new policies/terms/history/revisions/series and original receipts.
+- [x] (API audit 118bff2) 87. Export returns200 tracktablekeeper,format_version1,stateobject;preserves new policies/terms/history/revisions/series and original receipts.
 - [x] 88. Export is atomic read-only detached snapshot unaffected by later source writes.
 - [x] 89. Import accepts unchanged service export across independent process/port/files/network; returns 204 atomically.
 - [x] 90. Import replaces rather than merges and repeated import does not duplicate data.
@@ -106,12 +106,12 @@
 - [x] 102. Receipts scope user/method/path/key, refer to existing user and valid immutable response snapshots; loading validates bodies/responses and key constraints without requiring equality to subsequently changed bookings.
 - [x] 103. Batch moves requires auth/key; moves is 1..8 objects with distinct string references; invalid shape/duplicates give 422 validation_failed.
 - [x] 104. Every batch booking belongs to caller and same restaurant; unknown/other owner gives 404; different restaurants gives 422 validation_failed.
-- [ ] 105. Batch accepts PATCHfields/table_ids/expected_revision;preserves identity/owner/createdtime;changeditems adopt resultingpolicy and increment bookingrevision/history once.
+- [x] (API audit 118bff2) 105. Batch accepts PATCHfields/table_ids/expected_revision;preserves identity/owner/createdtime;changeditems adopt resultingpolicy and increment bookingrevision/history once.
 - [x] 106. Cancelled batch booking gives 409 reservation_cancelled; existing cutoff applies per booking.
 - [x] 107. Batch non-occupancy errors precede any occupancy conflict, in input order; cutoff precedes other changes for that booking.
 - [x] 108. Resulting bookings overlapping each other or unlisted confirmed bookings give 409 table_unavailable; unchanged items retain occupancy.
 - [x] 109. Batch commits all records/occupancy/receipt together or none; swaps supported.
-- [ ] 110. Successbatch201 ininputorder includes unchangeditems;no-op retains every value/revision/history;affected series increment once each for batch.
+- [x] (API audit 118bff2) 110. Successbatch201 ininputorder includes unchangeditems;no-op retains every value/revision/history;affected series increment once each for batch.
 - [x] 111. Batch replay gives 200 original response after changes/cancellation; exported/imported receipts preserve behavior.
 - [ ] 112. Kickoff package, supplied tests and harness remain unmodified; install nothing into harness interpreter.
 - [ ] 113. Independent checks cover every ledger line and full supplied harness without skips or deselection.
@@ -153,7 +153,7 @@
 - [ ] 149. Lookup has lookup-reference-input,lookup-submit; found reservation-detail and reservation-status exactly confirmed/cancelled.
 - [ ] 150. reservation-cancel-button cancels and is absent after cancellation; reservation-error shown for not found/cancel refused.
 - [ ] 151. reservation-tables on lookup names every selected table; single confirmation/lookup behavior unchanged.
-- [ ] 152. Stage3 accepts own stage1 andstage2exports,source stopped before import;no process/files/port/networkdependency.
+- [x] (API audit 118bff2) 152. Stage3 accepts own stage1 andstage2exports,source stopped before import;no process/files/port/networkdependency.
 - [ ] 153. Pre-upgrade signed-in browser remains signed in after between-request import, without reload/new screen.
 - [ ] 154. Retained pre-upgrade booking reference works in lookup after import.
 - [ ] 155. Response-lost pre-upgrade booking retries after import with same body/key and original confirmation; form and pending retry identity survive.
@@ -185,12 +185,12 @@
 - [ ] 181. Race for any shared member table/time gives exactly one winner; disjoint member sets may both succeed.
 - [ ] 182. Reset validates combinable shape, distinct member strings, known local tables and duplicate unordered declarations; invalid fixture replacement changes nothing.
 - [ ] 183. Import validates stage2 combination config/selection/relations/status/type/overlap as create; another track/invalid state422 atomically without5xx.
-- [ ] 184. Stage1 imported configs without combinable behave as no pairs; imported singleton bookings gain stage2 table_ids while preserving legacy table_id.
-- [ ] 185. Stage1 successful receipt snapshots retain original JSON responses exactly, even if missing stage2 table_ids; retries remain valid without regenerated identities.
+- [x] (API audit 118bff2) 184. Stage1 imported configs without combinable behave as no pairs; imported singleton bookings gain stage2 table_ids while preserving legacy table_id.
+- [x] (API audit 118bff2) 185. Stage1 successful receipt snapshots retain original JSON responses exactly, even if missing stage2 table_ids; retries remain valid without regenerated identities.
 - [ ] 186. Loading/transferring user IDs/emails,tokens,restaurant IDs/table-local IDs,reservation IDs/global references and receipt scope retain inherited invariants.
 - [ ] 187. Pair declaration identifier is unordered restaurant-local member set, not globally scoped table IDs; stored order remains presentation order.
 - [ ] 188. Confirmed occupancy invariant applies to every member across all reservations; cancelled bookings/receipts cannot create occupancy.
-- [ ] 189. Import/reset validates reservation owner/configuration/member relationships, unique references/IDs, temporal consistency and receipt-token ownership; validates legacy and new versions before replacement.
+- [x] (API audit 118bff2) 189. Import/reset validates reservation owner/configuration/member relationships, unique references/IDs, temporal consistency and receipt-token ownership; validates legacy and new versions before replacement.
 - [ ] 190. Browser session storage contains token/display identity and pending request key/body; successful stage1 token import remains valid; browser state never substitutes for server response.
 - [ ] 191. Use supplied interpreter/playwright Chromium/axe tools for browser checks; install nothing into harness interpreter.
 - [ ] 192. Independent browser checks exercise late searches,409 refresh preserving form,lost responses before/after commit,same-key retry,changed form key,combination equivalents and between-request upgrade.
@@ -199,94 +199,94 @@
 - [ ] 195. Run inheritedstage1/2 behavioral suites againststage3,newstage3 APIchecks and inheritedbrowser,fullisolatedharness withoutsuppliedskips/deselection/editing.
 - [ ] 196. Measuremaintainability vsfrozenstage2 baseline(rad on/lizard/JS/limits);recordduplicationlimitations.
 - [ ] 197. Finalstage3report includesaccepted/finalrevision,eachseatcontributions,harnessclaim/report,allrejections/changes,times/metrics/limitations.
-- [ ] 198. Availability capacity and no_overlap rules are independent; available iff both true; available_table_ids retains meaning and stage2 available_options remains inherited.
-- [ ] 199. explain query optional; accepts only literal true; false,1,empty,True or other values422 validation_failed.
-- [ ] 200. Without explain,no explanationfields in slots; inherited single/pair slotshape remains except policy-determinedvalues.
-- [ ] 201. With explain,every slot has full table explanation exactlyonce per restauranttable infixtureorder.
-- [ ] 202. Each table explanation contains table_id,policy_version,available and rules capacity then no_overlap in fixedorder.
-- [ ] 203. Both rules always reported independently including bothfalse; availabletrue IDs exactlymatch available_table_ids in sameorder.
-- [ ] 204. Closed day slots[]; fully unavailable slots remain with complete explanations for everytable.
-- [ ] 205. Availability/publishedpolicy decisions use selecteddate policygrid,duration,hours,capacities not originalrestaurantdetail.
-- [ ] 206. GET /reservations/{reference}/history owneronly;unknown,anotherguest,anonymous404;cancelledhistory still readable.
-- [ ] 207. History entries oldestfirst in seqorder and atorder;seq starts1 increments exactly1 even same-secondwrites.
-- [ ] 208. History created names tables,starttime,partysize fromnull in fixedorder.
-- [ ] 209. Single creation/table single-to-singlechanges use table_id historyfield;paircreation uses table_ids fromnull todeclaredorderpair.
-- [ ] 210. Anychange involving pair uses complete table_ids before/after,declaredcombinationorder;tablesfield precedes starts_at_local then party_size.
-- [ ] 211. Changedhistory includes ONLY fieldsactuallychanged;one changedentry per realamendment;no-op nohistory.
-- [ ] 212. Cancelledhistory event has changes[];nothing follows cancellation.
-- [ ] 213. Idempotentreplay create/batch/series/policy adds nohistory/revisions/termschanges.
-- [ ] 214. Every historyentry carries resultingbookingrevision and COMPLETE accepted_terms fromthat event;oldentries never acquirelaterterms.
-- [ ] 215. No new screens required for history/explain/policy/series;existingstage2 browsergrid follows sameauthoritative rules.
-- [ ] 216. Restaurantfixture manager_user_ids defaults[];onlylistedusers publishpolicy;managerrole neverpermits otherdinerprivatebooking/history/decision/series.
-- [ ] 217. Policy publication POST /restaurants/{id}/policies requiresauth andkey;unknownrestaurant404,authenticatednonmanager403,no token401.
-- [ ] 218. Policy publication completebody required effective_from,slot_minutes,reservation_duration_minutes,cancellation_cutoff_minutes,opening_hours,capacities;not patch.
-- [ ] 219. Policy effective_from validactualYYYY-MM-DD;grid,duration integers1..1440;cutoffinteger0..10080;boolneverinteger.
-- [ ] 220. Policy openinghours validstage1format,no duplicateweekday.
-- [ ] 221. Policy capacities names EXACT restaurant-localtableIDs with integer1..100;missing/extra/unknownkeyinvalid.
-- [ ] 222. Every invalidpolicy422 validation_failed,no versionallocation or any statechange;unknownfieldsignored.
-- [ ] 223. Policy cannot altertableIDs/labels/timezone/declaredcombinations;unknown unrelatedfieldsignored.
-- [ ] 224. Successfulpublication201 suppliedrecognizedpolicy pluspolicy_version;versionperrestaurant begins1 increments1onlysuccess;replay200original/noallocation.
-- [ ] 225. Policy0 originalfixture rules appliesbeforepublishedpolicy;immutable originalconfiguration.
-- [ ] 226. Select policyby bookingLOCALstartdate:greatest effective_from<=date,tiestakegreatestpolicy_version;publicationordercan differ dateorder.
-- [ ] 227. Effective dates may be past;new samedatepolicy supersedes futuredecisions only;publication never retroactively editsacceptedbooking/end/history/revisions.
-- [ ] 228. GET /restaurants/{id}/policies public,policieslist publicationorder,omitpolicy0;unknownrestaurant404.
-- [ ] 229. Ordinaryrestaurantdetail stays originalfixtureconfiguration includingtablecapacities,hours;availability/decisions selectedpolicy.
-- [ ] 230. EveryNEW reservationcurrentresponse gains revisioninteger1 atcreation andaccepted_terms entireselectedpolicy excluding effective_from.
-- [ ] 231. accepted_terms includespolicy_version,grid,duration,cutoff,openinghours,completecapacities;immutable copies,not sharedmutablepolicyrefs.
-- [ ] 232. Seedbookings revision1 underpolicy0;seedhistory createdor supported consistent default;types/cancelledstates valid.
-- [ ] 233. Old idempotencyresponses remain EXACT originalJSON including absentnewfields/originalrevision+terms,not currentviews.
-- [ ] 234. Cancel usesacceptedoldcutoff/currentstart;firstcancel incrementsbookingrevision1;repeatcancel nochange.
-- [ ] 235. Realamendment checksoldacceptedcutoff first then validates ALL resultingfields under resultingdatepolicy,evenunchangedfields.
-- [ ] 236. Realamendment atomically replacesacceptedterms/endtime,revision+1,changedhistory+1,occupancy;failedchangesnone.
-- [ ] 237. No-op retainsacceptedterms,endtime,revision/historyevenifnewpublishedpolicyapplies;stillconfirmed/editablerequired.
-- [ ] 238. PATCH expected_revision optional;integer>=1 mismatched409 stale_revision BEFOREcutoff/validation;invalidtype/range422.
-- [ ] 239. Two concurrent realchanges using sameexpected_revision have exactlyonewinner;no-opserialsemantics preservecounter.
-- [ ] 240. UnrelatedunknownPATCHfields ignored;expected_revision wrongbool/fraction/string/zero/negative422.
-- [ ] 241. GET /reservations/{reference}/decision returnsreference,currentrevision,accepted_termsincludingcancelled;owneronly404evenanonymous.
-- [ ] 242. History/decision authvisibility exception resolved404foranonymous;privateexistenceneverleaks.
-- [ ] 243. POST /series adopts existinganchor occurrence0;requiresauth/key,anchor_reference,count,interval_weeks;unknownfieldsignored.
-- [ ] 244. Series anchorowned,confirmed,editableunderacceptedcutoff;unknown/otherowner404,cancelled409reservation_cancelled,alreadyadopted409already_in_series.
-- [ ] 245. Series countinteger2..12 inclanchor,interval_weeksinteger1..4;bool/wrongtype/range422;no token401.
-- [ ] 246. Occurrence0 isanchor unchangedreference,identity,revision,terms,history,timestamps,originalbookingreceipt.
-- [ ] 247. Occurrence i localcalendaranchor date+i*interval_weeks*7days,samelocalclock acrossDST;not absoluteweeklyseconds.
-- [ ] 248. Each generatedoccurrence chooses owndatepolicy,includinggrid/duration/capacity/cutoff/hours;sametable selection/partysizeasanchor.
-- [ ] 249. Generatedgaplocaltime invalid_local_time rejectsWHOLEadoption;foldresolvesfirstonly.
-- [ ] 250. Ordinarybookingslot/opening/capacity/occupancyrulesapplyeachgeneratedoccurrence;firstfailingindex determinesordinarycode.
-- [ ] 251. Failedseries leavesno partialseries,reservations,histories,counters,anchormembership orkeyclaim;samekeymaylater succeed.
-- [ ] 252. Series success201 series_id,revision1,interval_weeks,occurrences orderedindex0..count-1 eachreference/exceptionfalse/reservationordinaryshape.
-- [ ] 253. Occurrence references globallydistinct,indicesstable and identities immutablewhenlaterdates/tableschange.
-- [ ] 254. Occurrences appearordinaryreservationlists,occupytables,own ordinaryhistories.
-- [ ] 255. GET /series/{series_id} returnscurrentstateshape;owneronly;otherguest/anonymous/unknown404.
-- [ ] 256. RealindividualPATCH permanentlysetsoccurrenceexceptiontrue andincrementsseriesrevisiononce;no-op/failure leavesunchanged.
-- [ ] 257. Firstoccurrencecancel incrementsseriesrevisiononce withoutnewexceptionflag;repeatcancelnothing;cancelledretainedoccurrence.
-- [ ] 258. Cancellinganchor nevercancelsiblings;ordinarycutoff/expectedrevision checksapply.
+- [x] (API audit 118bff2) 198. Availability capacity and no_overlap rules are independent; available iff both true; available_table_ids retains meaning and stage2 available_options remains inherited.
+- [x] (API audit 118bff2) 199. explain query optional; accepts only literal true; false,1,empty,True or other values422 validation_failed.
+- [x] (API audit 118bff2) 200. Without explain,no explanationfields in slots; inherited single/pair slotshape remains except policy-determinedvalues.
+- [x] (API audit 118bff2) 201. With explain,every slot has full table explanation exactlyonce per restauranttable infixtureorder.
+- [x] (API audit 118bff2) 202. Each table explanation contains table_id,policy_version,available and rules capacity then no_overlap in fixedorder.
+- [x] (API audit 118bff2) 203. Both rules always reported independently including bothfalse; availabletrue IDs exactlymatch available_table_ids in sameorder.
+- [x] (API audit 118bff2) 204. Closed day slots[]; fully unavailable slots remain with complete explanations for everytable.
+- [x] (API audit 118bff2) 205. Availability/publishedpolicy decisions use selecteddate policygrid,duration,hours,capacities not originalrestaurantdetail.
+- [x] (API audit 118bff2) 206. GET /reservations/{reference}/history owneronly;unknown,anotherguest,anonymous404;cancelledhistory still readable.
+- [x] (API audit 118bff2) 207. History entries oldestfirst in seqorder and atorder;seq starts1 increments exactly1 even same-secondwrites.
+- [x] (API audit 118bff2) 208. History created names tables,starttime,partysize fromnull in fixedorder.
+- [x] (API audit 118bff2) 209. Single creation/table single-to-singlechanges use table_id historyfield;paircreation uses table_ids fromnull todeclaredorderpair.
+- [x] (API audit 118bff2) 210. Anychange involving pair uses complete table_ids before/after,declaredcombinationorder;tablesfield precedes starts_at_local then party_size.
+- [x] (API audit 118bff2) 211. Changedhistory includes ONLY fieldsactuallychanged;one changedentry per realamendment;no-op nohistory.
+- [x] (API audit 118bff2) 212. Cancelledhistory event has changes[];nothing follows cancellation.
+- [x] (API audit 118bff2) 213. Idempotentreplay create/batch/series/policy adds nohistory/revisions/termschanges.
+- [x] (API audit 118bff2) 214. Every historyentry carries resultingbookingrevision and COMPLETE accepted_terms fromthat event;oldentries never acquirelaterterms.
+- [x] (API audit 118bff2) 215. No new screens required for history/explain/policy/series;existingstage2 browsergrid follows sameauthoritative rules.
+- [x] (API audit 118bff2) 216. Restaurantfixture manager_user_ids defaults[];onlylistedusers publishpolicy;managerrole neverpermits otherdinerprivatebooking/history/decision/series.
+- [x] (API audit 118bff2) 217. Policy publication POST /restaurants/{id}/policies requiresauth andkey;unknownrestaurant404,authenticatednonmanager403,no token401.
+- [x] (API audit 118bff2) 218. Policy publication completebody required effective_from,slot_minutes,reservation_duration_minutes,cancellation_cutoff_minutes,opening_hours,capacities;not patch.
+- [x] (API audit 118bff2) 219. Policy effective_from validactualYYYY-MM-DD;grid,duration integers1..1440;cutoffinteger0..10080;boolneverinteger.
+- [x] (API audit 118bff2) 220. Policy openinghours validstage1format,no duplicateweekday.
+- [x] (API audit 118bff2) 221. Policy capacities names EXACT restaurant-localtableIDs with integer1..100;missing/extra/unknownkeyinvalid.
+- [x] (API audit 118bff2) 222. Every invalidpolicy422 validation_failed,no versionallocation or any statechange;unknownfieldsignored.
+- [x] (API audit 118bff2) 223. Policy cannot altertableIDs/labels/timezone/declaredcombinations;unknown unrelatedfieldsignored.
+- [x] (API audit 118bff2) 224. Successfulpublication201 suppliedrecognizedpolicy pluspolicy_version;versionperrestaurant begins1 increments1onlysuccess;replay200original/noallocation.
+- [x] (API audit 118bff2) 225. Policy0 originalfixture rules appliesbeforepublishedpolicy;immutable originalconfiguration.
+- [x] (API audit 118bff2) 226. Select policyby bookingLOCALstartdate:greatest effective_from<=date,tiestakegreatestpolicy_version;publicationordercan differ dateorder.
+- [x] (API audit 118bff2) 227. Effective dates may be past;new samedatepolicy supersedes futuredecisions only;publication never retroactively editsacceptedbooking/end/history/revisions.
+- [x] (API audit 118bff2) 228. GET /restaurants/{id}/policies public,policieslist publicationorder,omitpolicy0;unknownrestaurant404.
+- [x] (API audit 118bff2) 229. Ordinaryrestaurantdetail stays originalfixtureconfiguration includingtablecapacities,hours;availability/decisions selectedpolicy.
+- [x] (API audit 118bff2) 230. EveryNEW reservationcurrentresponse gains revisioninteger1 atcreation andaccepted_terms entireselectedpolicy excluding effective_from.
+- [x] (API audit 118bff2) 231. accepted_terms includespolicy_version,grid,duration,cutoff,openinghours,completecapacities;immutable copies,not sharedmutablepolicyrefs.
+- [x] (API audit 118bff2) 232. Seedbookings revision1 underpolicy0;seedhistory createdor supported consistent default;types/cancelledstates valid.
+- [x] (API audit 118bff2) 233. Old idempotencyresponses remain EXACT originalJSON including absentnewfields/originalrevision+terms,not currentviews.
+- [x] (API audit 118bff2) 234. Cancel usesacceptedoldcutoff/currentstart;firstcancel incrementsbookingrevision1;repeatcancel nochange.
+- [x] (API audit 118bff2) 235. Realamendment checksoldacceptedcutoff first then validates ALL resultingfields under resultingdatepolicy,evenunchangedfields.
+- [x] (API audit 118bff2) 236. Realamendment atomically replacesacceptedterms/endtime,revision+1,changedhistory+1,occupancy;failedchangesnone.
+- [x] (API audit 118bff2) 237. No-op retainsacceptedterms,endtime,revision/historyevenifnewpublishedpolicyapplies;stillconfirmed/editablerequired.
+- [x] (API audit 118bff2) 238. PATCH expected_revision optional;integer>=1 mismatched409 stale_revision BEFOREcutoff/validation;invalidtype/range422.
+- [x] (API audit 118bff2) 239. Two concurrent realchanges using sameexpected_revision have exactlyonewinner;no-opserialsemantics preservecounter.
+- [x] (API audit 118bff2) 240. UnrelatedunknownPATCHfields ignored;expected_revision wrongbool/fraction/string/zero/negative422.
+- [x] (API audit 118bff2) 241. GET /reservations/{reference}/decision returnsreference,currentrevision,accepted_termsincludingcancelled;owneronly404evenanonymous.
+- [x] (API audit 118bff2) 242. History/decision authvisibility exception resolved404foranonymous;privateexistenceneverleaks.
+- [x] (API audit 118bff2) 243. POST /series adopts existinganchor occurrence0;requiresauth/key,anchor_reference,count,interval_weeks;unknownfieldsignored.
+- [x] (API audit 118bff2) 244. Series anchorowned,confirmed,editableunderacceptedcutoff;unknown/otherowner404,cancelled409reservation_cancelled,alreadyadopted409already_in_series.
+- [x] (API audit 118bff2) 245. Series countinteger2..12 inclanchor,interval_weeksinteger1..4;bool/wrongtype/range422;no token401.
+- [x] (API audit 118bff2) 246. Occurrence0 isanchor unchangedreference,identity,revision,terms,history,timestamps,originalbookingreceipt.
+- [x] (API audit 118bff2) 247. Occurrence i localcalendaranchor date+i*interval_weeks*7days,samelocalclock acrossDST;not absoluteweeklyseconds.
+- [x] (API audit 118bff2) 248. Each generatedoccurrence chooses owndatepolicy,includinggrid/duration/capacity/cutoff/hours;sametable selection/partysizeasanchor.
+- [x] (API audit 118bff2) 249. Generatedgaplocaltime invalid_local_time rejectsWHOLEadoption;foldresolvesfirstonly.
+- [x] (API audit 118bff2) 250. Ordinarybookingslot/opening/capacity/occupancyrulesapplyeachgeneratedoccurrence;firstfailingindex determinesordinarycode.
+- [x] (API audit 118bff2) 251. Failedseries leavesno partialseries,reservations,histories,counters,anchormembership orkeyclaim;samekeymaylater succeed.
+- [x] (API audit 118bff2) 252. Series success201 series_id,revision1,interval_weeks,occurrences orderedindex0..count-1 eachreference/exceptionfalse/reservationordinaryshape.
+- [x] (API audit 118bff2) 253. Occurrence references globallydistinct,indicesstable and identities immutablewhenlaterdates/tableschange.
+- [x] (API audit 118bff2) 254. Occurrences appearordinaryreservationlists,occupytables,own ordinaryhistories.
+- [x] (API audit 118bff2) 255. GET /series/{series_id} returnscurrentstateshape;owneronly;otherguest/anonymous/unknown404.
+- [x] (API audit 118bff2) 256. RealindividualPATCH permanentlysetsoccurrenceexceptiontrue andincrementsseriesrevisiononce;no-op/failure leavesunchanged.
+- [x] (API audit 118bff2) 257. Firstoccurrencecancel incrementsseriesrevisiononce withoutnewexceptionflag;repeatcancelnothing;cancelledretainedoccurrence.
+- [x] (API audit 118bff2) 258. Cancellinganchor nevercancelsiblings;ordinarycutoff/expectedrevision checksapply.
 - [ ] 259. Seriesadoption restaurantrevisionchanges deferred correctnessuntilstage4 perorganiser;notstage3acceptanceblocker.
-- [ ] 260. Series replay200 originalseriesresponse evenafteramend/cancel;changesnocounters/exceptions/history.
-- [ ] 261. Stage3 accepts ownstage1+stage2exports;importedbookings revision1/policy0terms withhistoryEMPTYoronecreatedentry perorganiser.
-- [ ] 262. Imported legacyanchor canbeadopted;confirmationlinks/sessions/originalbookingretry remainvalid.
-- [ ] 263. Stage2 combinedacceptedterms useSUMSELECTEDpolicycapacities,notfixturecapacities.
-- [ ] 264. Reversedinputpair sameunorderedset no-op;declaredorder histories/responsesnormalizedwithoutnewrevision.
-- [ ] 265. Batch permoveexpected_revision optional followsPATCHvalidation/stale-before-cutoff;realchange adopts resultingdatepolicy;no-op retainterms/history.
-- [ ] 266. Batchvalidatesallamendmentrules before occupancy,nonoccupancyerrors precedenceininputorder;failureallrecord/occupancy/terms/history/revision/seriesflags/receipt unchanged.
-- [ ] 267. Batch everychangedbooking +1revision/+1changedhistory;unchanged nohistory/revision.
-- [ ] 268. Batch eachAFFECTEDseries+1 revisionTOTALevenmultiplechangedoccurrences;eachchangedoccurrenceexception permanentlytrue.
-- [ ] 269. Batchfailure/replay no revisions/history/exceptionflags;successful originalbatchreceipt survives laterchanges/import.
-- [ ] 270. Sharedanchor concurrentseriesadoptions exactlyonewinner;unusedidenticalkeyreplaysone201others200sameoriginalseriesresponse.
-- [ ] 271. Policyversionidentifier scopedrestaurant;policymappingversion/effectivedate consistent,immutable,currentselectiondeterministic.
-- [ ] 272. Bookingrevision scopedreservation,integer>=1;historyseqscopedreference,strictsequential/monotonictimestamps/revision/event/changes/termsconsistent.
-- [ ] 273. Acceptedterms snapshot references validoriginalorselectedimmutablepolicy,fullrestauranttablescapacities,positiveintegerfields and validhours;loading verifiesnot currentpolicyreplacement.
-- [ ] 274. SeriesID globallyuniqueopaque<=64;ownerexistinguser,occurrenceanchor/reservationownership/restaurantcompatible,count/intervalbounds,indexsequence,distinctrefs and onemembershipperreservation.
-- [ ] 275. Seriesrevision scopedseries integer>=1,perchange/cancel/batchsemantics;exceptionboolperoccurrence andpermanentafterrealchange.
-- [ ] 276. Seriesmembership links existingreservations bidirectionally,stableindex/reference;noorphan/doubleadoption;loading/reset/transfer validatesrelationships.
-- [ ] 277. New policy/series idempotencyrecords scopeduser/method/path/key with parsedbody/originalresponse;invalidrequestsconsumenothing;transferpreservesoriginalresponsesandowners.
-- [ ] 278. Reset validatesmanager_user_ids array ofdistinctknownuserIDs,restaurantpolicyrules/IDscopes/types includingboolintegerrefusal.
-- [ ] 279. Resetall newstate policyversions/series/history/receipts cleared;repeatedreset atomic and oldtokensinvalid.
-- [ ] 280. Import newstate includesimmutablepolicies,acceptedterms,booking/history/seriesrevisions,exceptionflags,membership and everynewpathreceipt;validate beforeatomicreplace.
-- [ ] 281. Badnewstate (invalidboolintegers,policyversion/date/managerrelations,historyseq/events/terms,seriesownership/index/membership/overlap)422withoutstatechange/no5xx.
-- [ ] 282. Legacyimport validbookingfields/overlap/type/relationschecked unchanged;conversiondefaultspolicy0/revision1/historyemptyorcreated withoutregeneratingexistingIDs/timestamps/receipts.
-- [ ] 283. Exportatomicsnapshot read-only detached acrosspolicies/bookinghistory/series/receipts;sourcewritesafterexportdon'tmutateit.
-- [ ] 284. Failedrequestkeys remain reusable acrossseries/policyfailure andtransfer;resetclearsimportedstate.
-- [ ] 285. API old/new policies/history/series/receipts concurrency serializable underup-to50load,consistentreads;nopartialcounter/history/terms/membership observed.
+- [x] (API audit 118bff2) 260. Series replay200 originalseriesresponse evenafteramend/cancel;changesnocounters/exceptions/history.
+- [x] (API audit 118bff2) 261. Stage3 accepts ownstage1+stage2exports;importedbookings revision1/policy0terms withhistoryEMPTYoronecreatedentry perorganiser.
+- [x] (API audit 118bff2) 262. Imported legacyanchor canbeadopted;confirmationlinks/sessions/originalbookingretry remainvalid.
+- [x] (API audit 118bff2) 263. Stage2 combinedacceptedterms useSUMSELECTEDpolicycapacities,notfixturecapacities.
+- [x] (API audit 118bff2) 264. Reversedinputpair sameunorderedset no-op;declaredorder histories/responsesnormalizedwithoutnewrevision.
+- [x] (API audit 118bff2) 265. Batch permoveexpected_revision optional followsPATCHvalidation/stale-before-cutoff;realchange adopts resultingdatepolicy;no-op retainterms/history.
+- [x] (API audit 118bff2) 266. Batchvalidatesallamendmentrules before occupancy,nonoccupancyerrors precedenceininputorder;failureallrecord/occupancy/terms/history/revision/seriesflags/receipt unchanged.
+- [x] (API audit 118bff2) 267. Batch everychangedbooking +1revision/+1changedhistory;unchanged nohistory/revision.
+- [x] (API audit 118bff2) 268. Batch eachAFFECTEDseries+1 revisionTOTALevenmultiplechangedoccurrences;eachchangedoccurrenceexception permanentlytrue.
+- [x] (API audit 118bff2) 269. Batchfailure/replay no revisions/history/exceptionflags;successful originalbatchreceipt survives laterchanges/import.
+- [x] (API audit 118bff2) 270. Sharedanchor concurrentseriesadoptions exactlyonewinner;unusedidenticalkeyreplaysone201others200sameoriginalseriesresponse.
+- [x] (API audit 118bff2) 271. Policyversionidentifier scopedrestaurant;policymappingversion/effectivedate consistent,immutable,currentselectiondeterministic.
+- [x] (API audit 118bff2) 272. Bookingrevision scopedreservation,integer>=1;historyseqscopedreference,strictsequential/monotonictimestamps/revision/event/changes/termsconsistent.
+- [x] (API audit 118bff2) 273. Acceptedterms snapshot references validoriginalorselectedimmutablepolicy,fullrestauranttablescapacities,positiveintegerfields and validhours;loading verifiesnot currentpolicyreplacement.
+- [x] (API audit 118bff2) 274. SeriesID globallyuniqueopaque<=64;ownerexistinguser,occurrenceanchor/reservationownership/restaurantcompatible,count/intervalbounds,indexsequence,distinctrefs and onemembershipperreservation.
+- [x] (API audit 118bff2) 275. Seriesrevision scopedseries integer>=1,perchange/cancel/batchsemantics;exceptionboolperoccurrence andpermanentafterrealchange.
+- [x] (API audit 118bff2) 276. Seriesmembership links existingreservations bidirectionally,stableindex/reference;noorphan/doubleadoption;loading/reset/transfer validatesrelationships.
+- [x] (API audit 118bff2) 277. New policy/series idempotencyrecords scopeduser/method/path/key with parsedbody/originalresponse;invalidrequestsconsumenothing;transferpreservesoriginalresponsesandowners.
+- [x] (API audit 118bff2) 278. Reset validatesmanager_user_ids array ofdistinctknownuserIDs,restaurantpolicyrules/IDscopes/types includingboolintegerrefusal.
+- [x] (API audit 118bff2) 279. Resetall newstate policyversions/series/history/receipts cleared;repeatedreset atomic and oldtokensinvalid.
+- [x] (API audit 118bff2) 280. Import newstate includesimmutablepolicies,acceptedterms,booking/history/seriesrevisions,exceptionflags,membership and everynewpathreceipt;validate beforeatomicreplace.
+- [x] (API audit 118bff2) 281. Badnewstate (invalidboolintegers,policyversion/date/managerrelations,historyseq/events/terms,seriesownership/index/membership/overlap)422withoutstatechange/no5xx.
+- [x] (API audit 118bff2) 282. Legacyimport validbookingfields/overlap/type/relationschecked unchanged;conversiondefaultspolicy0/revision1/historyemptyorcreated withoutregeneratingexistingIDs/timestamps/receipts.
+- [x] (API audit 118bff2) 283. Exportatomicsnapshot read-only detached acrosspolicies/bookinghistory/series/receipts;sourcewritesafterexportdon'tmutateit.
+- [x] (API audit 118bff2) 284. Failedrequestkeys remain reusable acrossseries/policyfailure andtransfer;resetclearsimportedstate.
+- [x] (API audit 118bff2) 285. API old/new policies/history/series/receipts concurrency serializable underup-to50load,consistentreads;nopartialcounter/history/terms/membership observed.
 - [ ] 286. Stoppedstage2->stage3 actualprocess/container proof beforedestinationimport includesoldsessions,single/pairbookings,originalcreate/movereceipts,browserpendingretry;alsoownstage1export accepted.
 - [ ] 287. Roundtripstage3->independentstage3 carriespolicies,series,history,acceptedterms,currentrevisions andallreplayresponses exactly.
 - [ ] 288. Independentchecks testpolicyinvalidwritesnoversion,publicationdateorder/samedatetie,perdateacceptanceandimmutability,cutoffoldterms,no-op/historyfixedorder,cancelrepeat.
@@ -294,3 +294,5 @@
 - [ ] 290. Independentchecks testseriesDSTgap/fold/localclock/peroccurrencepolicy/atomicfailurekeyreuse/anchoradoptionrace/occurrenceexceptions/onebatchseriesincrement/transferreceipts.
 - [ ] 291. Browserallinheritedflows retainnewresponsefields andselectedpolicyavailabilitywithoutnewrequiredscreens;375px/1280px,label/focus/contrast/recoverystates/axe/upgradevisualevidence.
 - [ ] 292. Record exactstage/rejection start/end,fullcandidate/reviewrevision,harnessclaimedstage3,newfolderreport,perseatresults,maintainabilityvsstage2/openlimits.
+
+Still pending at 118bff2 (not ticked): 112-116 process lines, 190-197 browser/process/metrics proof on the final candidate, 259 deferred to stage 4 by organiser, 286-287 browser part, 291-292.
