@@ -1,7 +1,7 @@
 # Core builder Stage 3 notes
 Dispatch: 5140d0b4a04e71c478419d9a820ee15854ce778f
 Requirements: handoffs/requirements-stage-1.md, requirements-stage-2.md, requirements-stage-3.md
-Scope: copied domain baseline only; feature gate remains closed.
+Scope: Stage3 domain implementation and corrected integrated verification; restructuring gate was released before features.
 Plan: inspect separation, preserve behavior, commit copied owned modules, verify inherited API/state transfer and budgets.
 - [ ] 1. Implement stage3 only, with inherited stages1/2 API/browser and policies/history/recurrence additions; no existing-product source/docs/schemas.
 - [ ] 2. Complete buildable stage-3 copied from frozenstage-2 contains Dockerfile,RUN.md,every asset;no nested.git/generatedcache committed.
@@ -305,3 +305,5 @@ Implementation completed for owned domain requirements; supplied checks pass. Re
 Observed full run464:448 passed/12 failures/2 errors; final API rerun146:140 passed/6 cross-owner or environment/report failures/0 errors/skips. No service acceptance claimed.
 Core source boundaries extended by amendments.py, api_routes.py, policies.py, chronology.py, series.py and state_loading/history/series/receipts modules. A function at CC11 was split; final max9, all files MI A, largest171 lines. Mean complexity increased2.80833->3.14607; retained for independent review.
 Actual state validation checks, owner permissions, DST recurrence, counter/replay semantics and import roundtrip passed apart from three disputed tester expectations detailed in the findings report. Stage4 restaurant revisions intentionally absent.
+
+Corrected integrated run: source8093f21/core445dfb6; checksa41b705. Full466:460pass,6failures(5superseded+manifest),0errors/skips. Harness152/152claimed3. Full evidence: core-builder-integrated-stage-3-r1.md. Native roundtrip, stopped-source legacy transfer and both browser upgrades now passed; F10 and large Windows reset limit remain visible. Independent reviewer acceptance remains pending.
