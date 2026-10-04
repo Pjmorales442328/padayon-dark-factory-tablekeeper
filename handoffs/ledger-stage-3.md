@@ -1,0 +1,305 @@
+# Stage 3 requirement ledger
+
+Every numbered line requires an independent check. Lines1–197 inherit stages1/2 with stage3 changes below. Complete specs requirements-stage-1.md,requirements-stage-2.md,requirements-stage-3.md. Stage3 controls changed behavior. Python required.
+
+1. Implement stage3 only, with inherited stages1/2 API/browser and policies/history/recurrence additions; no existing-product source/docs/schemas.
+2. Complete buildable stage-3 copied from frozenstage-2 contains Dockerfile,RUN.md,every asset;no nested.git/generatedcache committed.
+3. Python implementation builds from clean checkout and starts with documented command without manual setup.
+4. Listen on 0.0.0.0, PORT environment variable, default 8080.
+5. Runtime has no outbound network and requires no external service or Compose.
+6. Operate within 2 CPUs and 2 GiB.
+7. Health becomes 200 {status:ok} within 60 seconds when store is usable.
+8. Support 50 in-flight requests without 5xx.
+9. Requests finish within 5 seconds; reset and test control calls within 10 seconds.
+10. State may be ephemeral across container restart.
+11. JSON responses use application/json; charset=utf-8; timestamps are RFC3339 with explicit offset.
+12. Unknown body fields and query parameters are ignored.
+13. Every identifier is an opaque string at most 64 characters, including fixture IDs.
+14. Reset is unauthenticated, enabled, returns 204 and atomically replaces all state.
+15. Repeated reset removes prior accounts, sessions, reservations, receipts and imported state.
+16. Restaurant and table configuration comes only from reset; no creation APIs required.
+17. Restaurant timezone is valid IANA zone; slot and duration minutes are positive integers; cutoff is nonnegative integer.
+18. Opening weekdays are mon through sun; missing weekday is closed.
+19. Opening times are valid HH:MM with closes later on same day; no overnight opening.
+20. Table capacities are positive integers; booleans never count as integers.
+21. Seed users log in immediately with supplied password.
+22. Seed reservations accept table_id or table_ids and default confirmed unless explicit cancelled; preserve validation and supplied identities.
+23. Past booking dates alone never cause rejection; cutoff still applies.
+24. Every error uses {error:{code,message}} with specified status/code and human readable message.
+25. Unparseable JSON, empty request body, non-object request body and ordinary wrong body field types give 400 malformed_request.
+26. Numeric starts_at_local gives 400 malformed_request.
+27. Missing required fields and valid-type invalid formats/ranges give 422 validation_failed unless specific code applies.
+28. Invalid party_size including string, boolean, fraction, zero and negative gives 422 validation_failed.
+29. starts_at_local strings must be bare YYYY-MM-DDTHH:MM; offsets, Z, seconds and invalid dates give 422 validation_failed.
+30. Integer query parameters accept plain decimal digits only; 1e9, 4.0 and +4 give 422 validation_failed.
+31. Required absent/empty idempotency header gives 400 missing_idempotency_key; length over 255 gives 422 validation_failed.
+32. No request produces a 5xx, including malformed input and concurrent load.
+33. Signup returns 201 user_id, display_name and token.
+34. Signup duplicate email gives 409 email_taken.
+35. Signup password under eight characters and email outside local@domain give 422 validation_failed; fixture passwords are strings without signup minimum.
+36. Login returns 200 user_id, display_name, token; wrong password/unknown email gives 401 unauthenticated.
+37. Passwords stored only as password-function hashes, never plaintext.
+38. Missing/malformed/unknown bearer token gives 401 unauthenticated except booking visibility exception below.
+39. Tokens never expire and multiple tokens/concurrent sessions remain valid.
+40. Health, reset, signup, login, restaurant list/detail, availability, export and import are public.
+41. Other endpoints require bearer authentication; permitted-resource restrictions use specified 403/404 codes.
+42. Another guest and anonymous caller receive 404 not_found for someone else's booking; do not expose existence.
+43. Idempotency applies to reservations,reservation-moves,restaurant policy publication and series creation.
+44. Receipt identity scopes user, method, path and key; different users do not interfere.
+45. Same key/body on another path is independent and succeeds normally.
+46. Resolve receipts after JSON-object parsing and authentication, before field/current-resource validation.
+47. Used key with different JSON body gives 409 idempotency_key_reuse even if new body invalid.
+48. First successful request returns 201; replay returns 200 identical original JSON response.
+49. JSON body comparison ignores whitespace and key order and preserves JSON value types.
+50. Failed 4xx requests do not consume keys; reuse is first use.
+51. Concurrent identical unused-key writes return exactly one 201 and others 200 identical bodies with one operation.
+52. Replay after amendment/cancellation returns original response without state changes.
+53. Restaurant list returns restaurants with id,name,timezone in fixture order.
+54. Restaurant detail returns full fixture-shaped configuration; unknown gives 404 not_found.
+55. Availability requires restaurant_id,date,party_size; missing gives 422 validation_failed.
+56. Availability date is valid local calendar date and party_size is positive integer query.
+57. Availability response includes restaurant_id,date,timezone and slots.
+58. Slots step from opening by slot_minutes and fit absolute duration within closing; include single-table availability and available_options.
+59. Each slot has starts_at_local, offset starts_at, available_table_ids in fixture order.
+60. Available tables have capacity >= party_size and no overlapping confirmed reservation.
+61. Fully occupied slots still appear with empty table list; closed day returns empty slots.
+62. Create supports table_id/table_ids and returns stage2shape plus revision1 and entire selected accepted_terms snapshot; old receipt replays stay original.
+63. Unknown restaurant/table or table outside restaurant gives 404 not_found.
+64. Occupancy uses restaurant plus table ID; table IDs may repeat in different restaurants.
+65. Confirmed occupancy is half-open absolute [start,start+duration); adjacent bookings do not overlap.
+66. Overlap gives 409 table_unavailable; two racing same-table/time requests have exactly one winner.
+67. Off-grid start gives 422 not_on_slot_grid measured from opening.
+68. Outside opening or ending after closing gives 422 outside_opening_hours.
+69. Party exceeding sum of selected tables' capacities gives 422 party_exceeds_capacity.
+70. Nonexistent local time gives 422 invalid_local_time.
+71. Reference is globally unique, 6..12 A-Z0-9 characters, immutable across changes.
+72. Reservation ID is globally unique, immutable across changes; owner,restaurant and created_at preserved.
+73. Reservation list includes only caller's confirmed/cancelled bookings, starts_at descending, exact create shapes; empty list supported.
+74. Reference lookup returns own booking or 404 for absent/invisible booking.
+75. First cancel returns200 cancelledstate, increments booking revision once, adds one cancelled history entry with emptychanges, frees all occupancy.
+76. Repeat cancel returns same currentstate200 and changes no booking/series/history counters,even aftercutoff.
+77. Cancel at/within accepted_terms cutoff or after currentstart409 cutoff_passed.
+78. PATCH accepts table_id or table_ids,starts_at_local,party_size; omitted fields retained; both table selectors invalid; no key required.
+79. PATCH checks optional expected_revision stale/type/range first,then current old acceptedcutoff and confirmedstatus,then full resultingfields under resultingdate policy.
+80. Successful PATCH releases/reserves together; failure preserves booking/occupancy.
+81. No-op amendment including reversedpair returns200 retaining terms,end,booking+series revisions and history;still confirmed/editable required.
+82. Spring-gap times absent in availability and rejected on create/amend.
+83. Fall-fold times resolve first occurrence only, appear once, second occurrence not bookable.
+84. Duration arithmetic is absolute time; ends_at follows resulting local offset, including fold example.
+85. Berlin 2026-03-29 and 2026-10-25 transitions handled with IANA offsets.
+86. New York 2026-03-08 and 2026-11-01 transitions handled with IANA offsets.
+87. Export returns200 tracktablekeeper,format_version1,stateobject;preserves new policies/terms/history/revisions/series and original receipts.
+88. Export is atomic read-only detached snapshot unaffected by later source writes.
+89. Import accepts unchanged service export across independent process/port/files/network; returns 204 atomically.
+90. Import replaces rather than merges and repeated import does not duplicate data.
+91. Invalid JSON import uses malformed_request; missing fields, wrong track/version or invalid state give 422 validation_failed without any changes.
+92. Another track export gives 422 validation_failed and preserves destination state.
+93. Import preserves accounts/password hashes, token validity, configuration, reservation identities/statuses/timestamps/references.
+94. Import preserves completed request bodies and original responses for create and moves; failed keys stay reusable.
+95. Import deletes all previous destination accounts/tokens/data; reset clears imported state.
+96. Reset fixtures and imported state validate all types, IDs, relations and booking rules, including confirmed overlaps.
+97. User IDs scope globally; emails uniquely identify accounts; loading validates unique IDs/emails and account field types.
+98. Restaurant IDs scope globally; loading validates uniqueness, timezone, policy and hours types/ranges.
+99. Table IDs scope within restaurant only; loading validates uniqueness within restaurant and capacity types/ranges.
+100. Reservations refer to existing user,restaurant and restaurant-local table; loading validates IDs/references uniqueness and temporal consistency.
+101. Tokens scope globally, map to existing user; loading validates token types/uniqueness/ownership and preserves multiple sessions.
+102. Receipts scope user/method/path/key, refer to existing user and valid immutable response snapshots; loading validates bodies/responses and key constraints without requiring equality to subsequently changed bookings.
+103. Batch moves requires auth/key; moves is 1..8 objects with distinct string references; invalid shape/duplicates give 422 validation_failed.
+104. Every batch booking belongs to caller and same restaurant; unknown/other owner gives 404; different restaurants gives 422 validation_failed.
+105. Batch accepts PATCHfields/table_ids/expected_revision;preserves identity/owner/createdtime;changeditems adopt resultingpolicy and increment bookingrevision/history once.
+106. Cancelled batch booking gives 409 reservation_cancelled; existing cutoff applies per booking.
+107. Batch non-occupancy errors precede any occupancy conflict, in input order; cutoff precedes other changes for that booking.
+108. Resulting bookings overlapping each other or unlisted confirmed bookings give 409 table_unavailable; unchanged items retain occupancy.
+109. Batch commits all records/occupancy/receipt together or none; swaps supported.
+110. Successbatch201 ininputorder includes unchangeditems;no-op retains every value/revision/history;affected series increment once each for batch.
+111. Batch replay gives 200 original response after changes/cancellation; exported/imported receipts preserve behavior.
+112. Kickoff package, supplied tests and harness remain unmodified; install nothing into harness interpreter.
+113. Independent checks cover every ledger line and full supplied harness without skips or deselection.
+114. Exact --repo stage3 isolated harness prints claimed stage: 3; expectedextra stage4 failure recorded separately.
+115. Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
+116. Coordinator never edits servicecode/checks/rootREADME/FACTORY;recordstage/rejectiontimes/metrics;frozenstage1+stage2 unchanged.
+
+
+## Stage 2 additions and transfer invariants
+
+117. Beforefeatures,each builder commits SHORT behavior-preserving restructuring on copiedownedstage3 files;stage1 unchanged344e085 andstage2 unchanged94e7654.
+118. Browser routes /, /signup, /login, /lookup return HTML, reachable directly by URL; API remains JSON and all other required screens reachable through UI.
+119. Browser supports searching, booking and managing reservations, including approved two-table combinations.
+120. If search A starts before B but completes later, grid, table labels and booking form remain B; stale responses never restore A.
+121. If another client takes selection after form opens, 409 table_unavailable shows booking-error, refreshes availability, preserves selected form/inputs and shows no confirmation for attempt.
+122. Lost booking response before/after commit shows nonempty booking-uncertain, no booking-error or new confirmation, retaining unchanged form.
+123. Unchanged uncertain booking retry sends same body and key; success clears uncertainty/error and displays original reference; confirmed rejection uses booking-error.
+124. Out-of-order and uncertain-result rules apply to combined bookings too; server remains authoritative and browser never invents cached success.
+125. No background polling/live updates/cross-tab sync/reload recovery is required.
+126. Presentation-ready coherent restaurant product uses warm hospitality character with clear search/availability/booking hierarchy.
+127. Dates, times, party size and seating choices are scannable; combined tables read as intentional seating choices with human labels.
+128. Consistent typography, spacing, colors, controls and feedback; primary actions obvious.
+129. Available,unavailable,selected,loading,success,refusal and uncertainty states visually distinct.
+130. Human-readable restaurant/table labels prominent; technical identifiers shown only when useful.
+131. 375 CSS-pixel mobile and conventional desktop layouts remain usable without horizontal page scroll.
+132. Visible input labels, apparent keyboard focus and sufficient text/control contrast throughout.
+133. Considered empty/loading/error states and consistent navigation across required routes; no custom asset required.
+134. Signup inputs expose signup-email,signup-password,signup-display-name and signup-submit button.
+135. Login inputs/button expose login-email,login-password,login-submit.
+136. auth-error exists only when auth error present; current-user appears every signed-in screen and contains display name; logout-button provided.
+137. Logout removes active browser auth and all routes reflect signed-out state; account/token server rules remain inherited.
+138. restaurant-select option values are restaurant IDs; date-input YYYY-MM-DD; party-size-input number; search-button runs search.
+139. availability-grid holds results; no-slots is shown instead of grid when day has no slots.
+140. Single cells have slot-{table_id}-{HH:MM} testids and data-available=true exactly when table_id in searched slot available_table_ids; false otherwise.
+141. Click available single cell opens correct table/time booking form; unavailable click does nothing.
+142. Signed-out available-cell click produces auth-error or navigates /login; authenticated booking requires server auth.
+143. booking-form, booking-summary, booking-party-size and booking-submit testids present; summary includes all selected table labels/local start.
+144. booking-party-size numeric input prefilled with searched party size; booking-error present only on confirmed refusal.
+145. Keep form after successful booking; unchanged submit repeats original reference with no error/second booking.
+146. Changing a field creates a new booking request/retry identity; unchanged requests reuse same body/key.
+147. confirmation and confirmation-reference appear after successful server booking; reference text exactly reference only.
+148. confirmation-details includes restaurant name,table label(s),local start; confirmation-tables includes every reservation table label.
+149. Lookup has lookup-reference-input,lookup-submit; found reservation-detail and reservation-status exactly confirmed/cancelled.
+150. reservation-cancel-button cancels and is absent after cancellation; reservation-error shown for not found/cancel refused.
+151. reservation-tables on lookup names every selected table; single confirmation/lookup behavior unchanged.
+152. Stage3 accepts own stage1 andstage2exports,source stopped before import;no process/files/port/networkdependency.
+153. Pre-upgrade signed-in browser remains signed in after between-request import, without reload/new screen.
+154. Retained pre-upgrade booking reference works in lookup after import.
+155. Response-lost pre-upgrade booking retries after import with same body/key and original confirmation; form and pending retry identity survive.
+156. Restaurant combinable field is ordered list of unordered pairs of that restaurant's table IDs; pair member order preserved for option output/testids.
+157. Only declared pairs bookable; never triples; combination relation nontransitive.
+158. Combination capacity equals sum of two distinct member capacities.
+159. Confirmed combination occupies each member for entire half-open absolute duration, scoped restaurant+table.
+160. Seed reservations may use table_id or table_ids and status cancelled; confirmed default; cancelled seeds occupy no tables.
+161. Availability available_table_ids remains singles-only behavior; slots gain available_options.
+162. available_options lists all eligible free singles first in fixture order, then eligible free pairs in combinable order.
+163. Pair option table_ids keeps combinable order; capacity sum; every member must be free and capacity>=party size.
+164. Combination overlapping any occupied member omitted from available_options even if other member free; cross-restaurant identical table IDs independent.
+165. Create legacy table_id means singleton; table_ids supports singleton or declared pair; sending both gives422 validation_failed.
+166. Reservation responses always contain table_ids; table_id present exactly for singleton and absent for pair.
+167. Unlisted pair or more than two tables gives422 combination_not_allowed.
+168. Duplicate selected table ID gives422 validation_failed; empty selection invalid with422 validation_failed; wrong JSON types follow inherited precedence unless overridden.
+169. Unknown member or restaurant-local mismatch gives inherited404 not_found; IDs remain string max64.
+170. Any member occupancy overlap gives409 table_unavailable; party above summed capacity gives422 party_exceeds_capacity.
+171. PATCH accepts table_ids same rules, atomically releases old members/reserves new members; failure changes none.
+172. Cancellation frees all members immediately; repeated cancellation identical state200.
+173. No-op pair order reversal returns200 without changing identities,timestamps,table selection values or occupancy.
+174. Combination UI cells use slot-{t_a}+{t_b}-{HH:MM} in combinable order and data-available consistent with eligible option.
+175. Combination cells shown when declared pair available for searched party size; all names use table labels.
+176. Single cell testids, confirmations and lookup remain compatible with stage1 singles.
+177. Atomic moves accept table_ids per item with inherited validation/cutoff/order/retry behavior; resulting booking sets cannot overlap any member.
+178. Batch swap between singles/pairs commits all or nothing; non-occupancy errors precede occupancy; unchanged pair permutations no-op.
+179. Combination receipt retries preserve original response after amendment/cancel and export/import; body comparison remains JSON-value based.
+180. Concurrent bookings/amendments/moves/read/reset/export/import are serializable: every read sees consistent before/after state, never partial occupancy.
+181. Race for any shared member table/time gives exactly one winner; disjoint member sets may both succeed.
+182. Reset validates combinable shape, distinct member strings, known local tables and duplicate unordered declarations; invalid fixture replacement changes nothing.
+183. Import validates stage2 combination config/selection/relations/status/type/overlap as create; another track/invalid state422 atomically without5xx.
+184. Stage1 imported configs without combinable behave as no pairs; imported singleton bookings gain stage2 table_ids while preserving legacy table_id.
+185. Stage1 successful receipt snapshots retain original JSON responses exactly, even if missing stage2 table_ids; retries remain valid without regenerated identities.
+186. Loading/transferring user IDs/emails,tokens,restaurant IDs/table-local IDs,reservation IDs/global references and receipt scope retain inherited invariants.
+187. Pair declaration identifier is unordered restaurant-local member set, not globally scoped table IDs; stored order remains presentation order.
+188. Confirmed occupancy invariant applies to every member across all reservations; cancelled bookings/receipts cannot create occupancy.
+189. Import/reset validates reservation owner/configuration/member relationships, unique references/IDs, temporal consistency and receipt-token ownership; validates legacy and new versions before replacement.
+190. Browser session storage contains token/display identity and pending request key/body; successful stage1 token import remains valid; browser state never substitutes for server response.
+191. Use supplied interpreter/playwright Chromium/axe tools for browser checks; install nothing into harness interpreter.
+192. Independent browser checks exercise late searches,409 refresh preserving form,lost responses before/after commit,same-key retry,changed form key,combination equivalents and between-request upgrade.
+193. Independent checks cover responsive375px/desktop,no horizontal scroll,labels/focus/contrast,distinct states and complete required flows; retain screenshots outside frozen source as reviewable evidence.
+194. Stop actual frozenstage2 source before independentstage3 importproof;verifyaccounts,tokens,single/pairbookings/references/create+batchreceipts,browser pending recovery.
+195. Run inheritedstage1/2 behavioral suites againststage3,newstage3 APIchecks and inheritedbrowser,fullisolatedharness withoutsuppliedskips/deselection/editing.
+196. Measuremaintainability vsfrozenstage2 baseline(rad on/lizard/JS/limits);recordduplicationlimitations.
+197. Finalstage3report includesaccepted/finalrevision,eachseatcontributions,harnessclaim/report,allrejections/changes,times/metrics/limitations.
+
+
+## Stage3 additions and cross-record invariants
+
+198. Availability capacity and no_overlap rules are independent; available iff both true; available_table_ids retains meaning and stage2 available_options remains inherited.
+199. explain query optional; accepts only literal true; false,1,empty,True or other values422 validation_failed.
+200. Without explain,no explanationfields in slots; inherited single/pair slotshape remains except policy-determinedvalues.
+201. With explain,every slot has full table explanation exactlyonce per restauranttable infixtureorder.
+202. Each table explanation contains table_id,policy_version,available and rules capacity then no_overlap in fixedorder.
+203. Both rules always reported independently including bothfalse; availabletrue IDs exactlymatch available_table_ids in sameorder.
+204. Closed day slots[]; fully unavailable slots remain with complete explanations for everytable.
+205. Availability/publishedpolicy decisions use selecteddate policygrid,duration,hours,capacities not originalrestaurantdetail.
+206. GET /reservations/{reference}/history owneronly;unknown,anotherguest,anonymous404;cancelledhistory still readable.
+207. History entries oldestfirst in seqorder and atorder;seq starts1 increments exactly1 even same-secondwrites.
+208. History created names tables,starttime,partysize fromnull in fixedorder.
+209. Single creation/table single-to-singlechanges use table_id historyfield;paircreation uses table_ids fromnull todeclaredorderpair.
+210. Anychange involving pair uses complete table_ids before/after,declaredcombinationorder;tablesfield precedes starts_at_local then party_size.
+211. Changedhistory includes ONLY fieldsactuallychanged;one changedentry per realamendment;no-op nohistory.
+212. Cancelledhistory event has changes[];nothing follows cancellation.
+213. Idempotentreplay create/batch/series/policy adds nohistory/revisions/termschanges.
+214. Every historyentry carries resultingbookingrevision and COMPLETE accepted_terms fromthat event;oldentries never acquirelaterterms.
+215. No new screens required for history/explain/policy/series;existingstage2 browsergrid follows sameauthoritative rules.
+216. Restaurantfixture manager_user_ids defaults[];onlylistedusers publishpolicy;managerrole neverpermits otherdinerprivatebooking/history/decision/series.
+217. Policy publication POST /restaurants/{id}/policies requiresauth andkey;unknownrestaurant404,authenticatednonmanager403,no token401.
+218. Policy publication completebody required effective_from,slot_minutes,reservation_duration_minutes,cancellation_cutoff_minutes,opening_hours,capacities;not patch.
+219. Policy effective_from validactualYYYY-MM-DD;grid,duration integers1..1440;cutoffinteger0..10080;boolneverinteger.
+220. Policy openinghours validstage1format,no duplicateweekday.
+221. Policy capacities names EXACT restaurant-localtableIDs with integer1..100;missing/extra/unknownkeyinvalid.
+222. Every invalidpolicy422 validation_failed,no versionallocation or any statechange;unknownfieldsignored.
+223. Policy cannot altertableIDs/labels/timezone/declaredcombinations;unknown unrelatedfieldsignored.
+224. Successfulpublication201 suppliedrecognizedpolicy pluspolicy_version;versionperrestaurant begins1 increments1onlysuccess;replay200original/noallocation.
+225. Policy0 originalfixture rules appliesbeforepublishedpolicy;immutable originalconfiguration.
+226. Select policyby bookingLOCALstartdate:greatest effective_from<=date,tiestakegreatestpolicy_version;publicationordercan differ dateorder.
+227. Effective dates may be past;new samedatepolicy supersedes futuredecisions only;publication never retroactively editsacceptedbooking/end/history/revisions.
+228. GET /restaurants/{id}/policies public,policieslist publicationorder,omitpolicy0;unknownrestaurant404.
+229. Ordinaryrestaurantdetail stays originalfixtureconfiguration includingtablecapacities,hours;availability/decisions selectedpolicy.
+230. EveryNEW reservationcurrentresponse gains revisioninteger1 atcreation andaccepted_terms entireselectedpolicy excluding effective_from.
+231. accepted_terms includespolicy_version,grid,duration,cutoff,openinghours,completecapacities;immutable copies,not sharedmutablepolicyrefs.
+232. Seedbookings revision1 underpolicy0;seedhistory createdor supported consistent default;types/cancelledstates valid.
+233. Old idempotencyresponses remain EXACT originalJSON including absentnewfields/originalrevision+terms,not currentviews.
+234. Cancel usesacceptedoldcutoff/currentstart;firstcancel incrementsbookingrevision1;repeatcancel nochange.
+235. Realamendment checksoldacceptedcutoff first then validates ALL resultingfields under resultingdatepolicy,evenunchangedfields.
+236. Realamendment atomically replacesacceptedterms/endtime,revision+1,changedhistory+1,occupancy;failedchangesnone.
+237. No-op retainsacceptedterms,endtime,revision/historyevenifnewpublishedpolicyapplies;stillconfirmed/editablerequired.
+238. PATCH expected_revision optional;integer>=1 mismatched409 stale_revision BEFOREcutoff/validation;invalidtype/range422.
+239. Two concurrent realchanges using sameexpected_revision have exactlyonewinner;no-opserialsemantics preservecounter.
+240. UnrelatedunknownPATCHfields ignored;expected_revision wrongbool/fraction/string/zero/negative422.
+241. GET /reservations/{reference}/decision returnsreference,currentrevision,accepted_termsincludingcancelled;owneronly404evenanonymous.
+242. History/decision authvisibility exception resolved404foranonymous;privateexistenceneverleaks.
+243. POST /series adopts existinganchor occurrence0;requiresauth/key,anchor_reference,count,interval_weeks;unknownfieldsignored.
+244. Series anchorowned,confirmed,editableunderacceptedcutoff;unknown/otherowner404,cancelled409reservation_cancelled,alreadyadopted409already_in_series.
+245. Series countinteger2..12 inclanchor,interval_weeksinteger1..4;bool/wrongtype/range422;no token401.
+246. Occurrence0 isanchor unchangedreference,identity,revision,terms,history,timestamps,originalbookingreceipt.
+247. Occurrence i localcalendaranchor date+i*interval_weeks*7days,samelocalclock acrossDST;not absoluteweeklyseconds.
+248. Each generatedoccurrence chooses owndatepolicy,includinggrid/duration/capacity/cutoff/hours;sametable selection/partysizeasanchor.
+249. Generatedgaplocaltime invalid_local_time rejectsWHOLEadoption;foldresolvesfirstonly.
+250. Ordinarybookingslot/opening/capacity/occupancyrulesapplyeachgeneratedoccurrence;firstfailingindex determinesordinarycode.
+251. Failedseries leavesno partialseries,reservations,histories,counters,anchormembership orkeyclaim;samekeymaylater succeed.
+252. Series success201 series_id,revision1,interval_weeks,occurrences orderedindex0..count-1 eachreference/exceptionfalse/reservationordinaryshape.
+253. Occurrence references globallydistinct,indicesstable and identities immutablewhenlaterdates/tableschange.
+254. Occurrences appearordinaryreservationlists,occupytables,own ordinaryhistories.
+255. GET /series/{series_id} returnscurrentstateshape;owneronly;otherguest/anonymous/unknown404.
+256. RealindividualPATCH permanentlysetsoccurrenceexceptiontrue andincrementsseriesrevisiononce;no-op/failure leavesunchanged.
+257. Firstoccurrencecancel incrementsseriesrevisiononce withoutnewexceptionflag;repeatcancelnothing;cancelledretainedoccurrence.
+258. Cancellinganchor nevercancelsiblings;ordinarycutoff/expectedrevision checksapply.
+259. Seriesadoption restaurantrevisionchanges deferred correctnessuntilstage4 perorganiser;notstage3acceptanceblocker.
+260. Series replay200 originalseriesresponse evenafteramend/cancel;changesnocounters/exceptions/history.
+261. Stage3 accepts ownstage1+stage2exports;importedbookings revision1/policy0terms withhistoryEMPTYoronecreatedentry perorganiser.
+262. Imported legacyanchor canbeadopted;confirmationlinks/sessions/originalbookingretry remainvalid.
+263. Stage2 combinedacceptedterms useSUMSELECTEDpolicycapacities,notfixturecapacities.
+264. Reversedinputpair sameunorderedset no-op;declaredorder histories/responsesnormalizedwithoutnewrevision.
+265. Batch permoveexpected_revision optional followsPATCHvalidation/stale-before-cutoff;realchange adopts resultingdatepolicy;no-op retainterms/history.
+266. Batchvalidatesallamendmentrules before occupancy,nonoccupancyerrors precedenceininputorder;failureallrecord/occupancy/terms/history/revision/seriesflags/receipt unchanged.
+267. Batch everychangedbooking +1revision/+1changedhistory;unchanged nohistory/revision.
+268. Batch eachAFFECTEDseries+1 revisionTOTALevenmultiplechangedoccurrences;eachchangedoccurrenceexception permanentlytrue.
+269. Batchfailure/replay no revisions/history/exceptionflags;successful originalbatchreceipt survives laterchanges/import.
+270. Sharedanchor concurrentseriesadoptions exactlyonewinner;unusedidenticalkeyreplaysone201others200sameoriginalseriesresponse.
+271. Policyversionidentifier scopedrestaurant;policymappingversion/effectivedate consistent,immutable,currentselectiondeterministic.
+272. Bookingrevision scopedreservation,integer>=1;historyseqscopedreference,strictsequential/monotonictimestamps/revision/event/changes/termsconsistent.
+273. Acceptedterms snapshot references validoriginalorselectedimmutablepolicy,fullrestauranttablescapacities,positiveintegerfields and validhours;loading verifiesnot currentpolicyreplacement.
+274. SeriesID globallyuniqueopaque<=64;ownerexistinguser,occurrenceanchor/reservationownership/restaurantcompatible,count/intervalbounds,indexsequence,distinctrefs and onemembershipperreservation.
+275. Seriesrevision scopedseries integer>=1,perchange/cancel/batchsemantics;exceptionboolperoccurrence andpermanentafterrealchange.
+276. Seriesmembership links existingreservations bidirectionally,stableindex/reference;noorphan/doubleadoption;loading/reset/transfer validatesrelationships.
+277. New policy/series idempotencyrecords scopeduser/method/path/key with parsedbody/originalresponse;invalidrequestsconsumenothing;transferpreservesoriginalresponsesandowners.
+278. Reset validatesmanager_user_ids array ofdistinctknownuserIDs,restaurantpolicyrules/IDscopes/types includingboolintegerrefusal.
+279. Resetall newstate policyversions/series/history/receipts cleared;repeatedreset atomic and oldtokensinvalid.
+280. Import newstate includesimmutablepolicies,acceptedterms,booking/history/seriesrevisions,exceptionflags,membership and everynewpathreceipt;validate beforeatomicreplace.
+281. Badnewstate (invalidboolintegers,policyversion/date/managerrelations,historyseq/events/terms,seriesownership/index/membership/overlap)422withoutstatechange/no5xx.
+282. Legacyimport validbookingfields/overlap/type/relationschecked unchanged;conversiondefaultspolicy0/revision1/historyemptyorcreated withoutregeneratingexistingIDs/timestamps/receipts.
+283. Exportatomicsnapshot read-only detached acrosspolicies/bookinghistory/series/receipts;sourcewritesafterexportdon'tmutateit.
+284. Failedrequestkeys remain reusable acrossseries/policyfailure andtransfer;resetclearsimportedstate.
+285. API old/new policies/history/series/receipts concurrency serializable underup-to50load,consistentreads;nopartialcounter/history/terms/membership observed.
+286. Stoppedstage2->stage3 actualprocess/container proof beforedestinationimport includesoldsessions,single/pairbookings,originalcreate/movereceipts,browserpendingretry;alsoownstage1export accepted.
+287. Roundtripstage3->independentstage3 carriespolicies,series,history,acceptedterms,currentrevisions andallreplayresponses exactly.
+288. Independentchecks testpolicyinvalidwritesnoversion,publicationdateorder/samedatetie,perdateacceptanceandimmutability,cutoffoldterms,no-op/historyfixedorder,cancelrepeat.
+289. Independentchecks testexpectedrevisiontypes/staleerrorprecedence/concurrentwinner,private404guest/anonymousforallnewprivatepaths,explainliteraltrue/allrulesbothfalse.
+290. Independentchecks testseriesDSTgap/fold/localclock/peroccurrencepolicy/atomicfailurekeyreuse/anchoradoptionrace/occurrenceexceptions/onebatchseriesincrement/transferreceipts.
+291. Browserallinheritedflows retainnewresponsefields andselectedpolicyavailabilitywithoutnewrequiredscreens;375px/1280px,label/focus/contrast/recoverystates/axe/upgradevisualevidence.
+292. Record exactstage/rejection start/end,fullcandidate/reviewrevision,harnessclaimedstage3,newfolderreport,perseatresults,maintainabilityvsstage2/openlimits.
+
