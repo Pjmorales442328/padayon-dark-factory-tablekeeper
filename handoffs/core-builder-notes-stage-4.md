@@ -119,7 +119,7 @@ Plan: centralize existing route/loading imports at module boundaries; preserve i
 - [ ] 114. Exact --repo stage3 isolated harness prints claimed stage: 3; expectedextra stage4 failure recorded separately.
 - [ ] 115. Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
 - [ ] 116. Coordinator never edits servicecode/checks/rootREADME/FACTORY;recordstage/rejectiontimes/metrics;frozenstage1+stage2 unchanged.
-- [ ] 117. Beforefeatures,each builder commits SHORT behavior-preserving restructuring on copiedownedstage3 files;stage1 unchanged344e085 andstage2 unchanged94e7654.
+- [x] 117. Beforefeatures,each builder commits SHORT behavior-preserving restructuring on copiedownedstage3 files;stage1 unchanged344e085 andstage2 unchanged94e7654.
 - [ ] 118. Browser routes /, /signup, /login, /lookup return HTML, reachable directly by URL; API remains JSON and all other required screens reachable through UI.
 - [ ] 119. Browser supports searching, booking and managing reservations, including approved two-table combinations.
 - [ ] 120. If search A starts before B but completes later, grid, table labels and booking form remain B; stale responses never restore A.
@@ -354,3 +354,4 @@ Plan: centralize existing route/loading imports at module boundaries; preserve i
 - [ ] 349. Independentchecks everyrestaurantrevisionwritepath/noop/failure/replay/preview/localstaleness andplan/series/anchor races.
 - [ ] 350. Exactisolated --repo --stage4harness claimedstage4,allshippedinherited/newchecks no skips/deselection/edits.
 - [ ] 351. MeasurePythonradon/lizard/JS/duplicationlimitsagainst frozenStage3;recordstages/rejectionsstart/end/finalacceptedrevisions/contributions/claimpath/openlimits.
+Repeated inherited API/state transfer verified at88686a81f626aec2e8b28cd01266a5acec7b1b20:145/148 API with3 non-domain inherited/environment failures; shippedStage1–3 152/152. Metrics unchanged. Baseline report core-builder-baseline-stage-4.md. Features remain gated.
