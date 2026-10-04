@@ -402,7 +402,8 @@ class Booking(BrowserBase):
         self.assertEqual(self.page.input_value(tid("booking-party-size")), "5")
         self.page.wait_for_function("() => { const e = document.querySelector(\"[data-testid='slot-t_1+t_2-19:00']\");"
                                     " return !e || e.getAttribute('data-available') === 'false'; }")
-        self.assertEqual(self.cells().get("slot-t_1-19:00"), "true")           # t_1 itself is still free
+        self.assertEqual(self.cells().get("slot-t_3-19:00"), "true")           # t_3 (6 seats) is untouched
+        self.assertEqual(self.cells().get("slot-t_1-19:00"), "false")          # t_1 is free but too small for 5
 
     # ---------------------------------------------------------------- lost responses
     def lost_flow(self, ident, party, mode):
@@ -464,7 +465,7 @@ class Booking(BrowserBase):
             self.assertIn("Window", self.text("booking-summary"))
             self.assertIn("Booth", self.text("booking-summary"))
             committed = self.reservations()
-            self.assertEqual(len(committed), 1 if mode == "lose-after" else 0)
+            self.assertEqual(len(committed), 1 if mode == "lose-after" else 0, st.get("fetched"))
             key, body, _ = st["attempts"][0]
             self.assertIn("table_ids", body)
             st["mode"] = "pass"

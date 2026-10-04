@@ -93,6 +93,10 @@ class BrowserBase(Base2):
     def ui_login(self, email="ada@example.com", pw="correct horse", page=None):
         page = page or self.page
         self.goto("/login", page)
+        # start from a signed-out browser: a stale session from an earlier phase must not satisfy the wait below
+        page.evaluate("() => { sessionStorage.clear(); localStorage.clear(); }")
+        page.reload()
+        page.wait_for_load_state("load")
         page.fill(tid("login-email"), email)
         page.fill(tid("login-password"), pw)
         page.click(tid("login-submit"))
@@ -183,7 +187,8 @@ class BrowserBase(Base2):
             if req.method == "POST" and urllib.parse.urlparse(req.url).path == "/reservations":
                 state["attempts"].append((req.headers.get("idempotency-key"), req.post_data, state["mode"]))
                 if state["mode"] == "lose-after":
-                    route.fetch()
+                    resp = route.fetch()
+                    state.setdefault("fetched", []).append((resp.status, resp.text()[:160]))
                     route.abort("failed")
                     return
                 if state["mode"] == "lose-before":

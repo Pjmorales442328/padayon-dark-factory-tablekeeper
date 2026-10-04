@@ -16,7 +16,7 @@ import urllib.parse
 from playwright.sync_api import sync_playwright
 
 from browser_helpers import launch, tid, TIMEOUT
-from s2common import (Api, STAGE1_DIR, STAGE2_DIR, THU, FRI, stage1_fixture, seed_res, start_at, stop_process, port_closed)
+from s2common import (Api, STAGE1_DIR, STAGE2_DIR, THU, FRI, stage1_fixture, seed_res, start_at, stop_process, port_closed, wait_port_closed)
 
 API_PREFIXES = ("/auth/", "/restaurants", "/availability", "/reservations", "/reservation-moves", "/health", "/_test/")
 HOP = {"connection", "keep-alive", "transfer-encoding", "te", "trailers", "upgrade", "proxy-authorization", "host",
@@ -170,7 +170,7 @@ class UpgradeBrowser(unittest.TestCase):
 
             # ---- the real migration: stop the source BEFORE importing
             stop_process(s1_proc)
-            self.assertTrue(port_closed(s1_port) and s1_proc.poll() is not None, "source must be stopped before import")
+            self.assertTrue(wait_port_closed(s1_port) and s1_proc.poll() is not None, "source must be stopped before import")
             dst_base, dst_proc, dst_port = start_at(STAGE2_DIR)
             procs.append(dst_proc)
             d = Api(dst_base)

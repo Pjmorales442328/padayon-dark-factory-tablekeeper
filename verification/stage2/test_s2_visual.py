@@ -136,13 +136,18 @@ class VisualChecks:
 
     def test_L133_search_failure_shows_an_error_state(self):
         self.goto("/")
+        marker = "Search service refused marker-7731"
         self.page.route("**/availability*", lambda r: r.fulfill(status=500, content_type="application/json",
-                                                                 body='{"error":{"code":"x","message":"down"}}'))
+                                                                 body='{"error":{"code":"x","message":"%s"}}' % marker))
         self.search("r_anker", THU, 2, wait=False)
         self.pump(self.page, 800)
         self.assertFalse(self.visible("availability-grid"))
         body = self.page.inner_text("body")
-        self.assertRegex(body, r"(?i)error|couldn|unable|try again|went wrong|failed|unavailable")
+        alert = self.page.locator("[role=alert], [role=status]:visible, [data-testid*=error]:visible").count()
+        # an error state means the diner is told: either the server's message is shown or a visible alert region exists
+        self.assertTrue("marker-7731" in body or alert > 0, "search failure is silent: " + body[-200:])
+        self.assertFalse(self.visible("no-slots") and "marker-7731" not in body and alert == 0,
+                         "a failed search must not look like an empty day")
         self.audit("search-error", axe=False)
 
     def test_L133_lookup_states(self):
