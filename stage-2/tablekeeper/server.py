@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from tablekeeper.service import Service
+from tablekeeper.web import serve as serve_web
 
 
 LOGGER = logging.getLogger("tablekeeper.http")
@@ -64,15 +65,18 @@ class RequestHandler(BaseHTTPRequestHandler):
     def _dispatch(self) -> None:
         try:
             parsed = urlsplit(self.path)
+            decoded_path = unquote(parsed.path)
+            if serve_web(self, self.command, decoded_path):
+                return
             query = self._query_values(parsed.query)
             headers = {name.lower(): value for name, value in self.headers.items()}
-            body = self._read_json_body(parsed.path, headers)
+            body = self._read_json_body(decoded_path, headers)
             if body is _BODY_ERROR:
                 return
 
             status, value = self.server.service.dispatch(
                 self.command,
-                unquote(parsed.path),
+                decoded_path,
                 query,
                 headers,
                 body,

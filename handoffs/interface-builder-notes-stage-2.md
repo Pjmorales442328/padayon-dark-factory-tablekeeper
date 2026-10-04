@@ -5,7 +5,7 @@ Contract baseline: fc078b6fbf6ed532bcd08bb6e1f417e9b47c4cca
 Frozen prior stage: stage-1 at accepted revision 344e085d8e3d0629dcc17fc95f22a43efe2a85d2
 Repository: C:/Users/Prince/Documents/darkfactory/band-work/result
 Owned files: stage-2/tablekeeper/server.py, stage-2/tablekeeper/web.py, stage-2/static/**, stage-2/templates/**, stage-2/Dockerfile, stage-2/RUN.md, stage-2/requirements.txt, stage-2/.dockerignore
-Current gate: behavior-preserving restructuring only; no Stage 2 feature behavior until coordinator release.
+Feature gate: released by coordinator at 2026-10-04T07:39:00+08:00 (dispatch f854261b07c28e247ba7a2bfc6ee74b1af599936). Interface implementation is in progress against the committed Stage 2 contract.
 
 ## Stage 2 restructuring notes
 
@@ -21,8 +21,8 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 ## Numbered requirement checklist
 
 1. [ ] Implement stage 2 only, with inherited stage 1 API and new browser UI; no existing-product source/documentation/schemas.
-2. [ ] Complete buildable stage-2 folder copied forward from frozen stage-1, containing Dockerfile, RUN.md and every runtime asset; no nested .git.
-3. [ ] Python implementation builds from clean checkout and starts with documented command without manual setup.
+2. [x] Complete buildable stage-2 folder copied forward from frozen stage-1, containing Dockerfile, RUN.md and every runtime asset; no nested .git.
+3. [x] Python implementation builds from clean checkout and starts with documented command without manual setup.
 4. [x] Listen on 0.0.0.0, PORT environment variable, default 8080.
 5. [x] Runtime has no outbound network and requires no external service or Compose.
 6. [x] Operate within 2 CPUs and 2 GiB.
@@ -136,8 +136,8 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 114. [ ] Exact --repo stage2 isolated harness command prints claimed stage: 2; expected extra stage3 failure recorded separately.
 115. [ ] Each seat commits explicit owned files with exact seat author and local non-personal email without shared git setting changes or history rewriting.
 116. [ ] Coordinator never edits service code/checks or root README.md/FACTORY.md; record stage/rejection start/end and maintainability; never edit frozen stage-1.
-117. [ ] Before any new feature, each builder commits a short behavior-preserving restructuring pass on its exclusively owned copied stage-2 files; stage-1 tree remains byte-identical to frozen 344e085.
-118. [ ] Browser routes /, /signup, /login, /lookup return HTML, reachable directly by URL; API remains JSON and all other required screens reachable through UI.
+117. [x] Before any new feature, each builder commits a short behavior-preserving restructuring pass on its exclusively owned copied stage-2 files; stage-1 tree remains byte-identical to frozen 344e085.
+118. [x] Browser routes /, /signup, /login, /lookup return HTML, reachable directly by URL; API remains JSON and all other required screens reachable through UI.
 119. [ ] Browser supports searching, booking and managing reservations, including approved two-table combinations.
 120. [ ] If search A starts before B but completes later, grid, table labels and booking form remain B; stale responses never restore A.
 121. [ ] If another client takes selection after form opens, 409 table_unavailable shows booking-error, refreshes availability, preserves selected form/inputs and shows no confirmation for attempt.
@@ -145,23 +145,23 @@ Frozen Stage 1 comparison: `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2
 123. [ ] Unchanged uncertain booking retry sends same body and key; success clears uncertainty/error and displays original reference; confirmed rejection uses booking-error.
 124. [ ] Out-of-order and uncertain-result rules apply to combined bookings too; server remains authoritative and browser never invents cached success.
 125. [ ] No background polling/live updates/cross-tab sync/reload recovery is required.
-126. [ ] Presentation-ready coherent restaurant product uses warm hospitality character with clear search/availability/booking hierarchy.
+126. [x] Presentation-ready coherent restaurant product uses warm hospitality character with clear search/availability/booking hierarchy.
 127. [ ] Dates, times, party size and seating choices are scannable; combined tables read as intentional seating choices with human labels.
-128. [ ] Consistent typography, spacing, colors, controls and feedback; primary actions obvious.
+128. [x] Consistent typography, spacing, colors, controls and feedback; primary actions obvious.
 129. [ ] Available,unavailable,selected,loading,success,refusal and uncertainty states visually distinct.
 130. [ ] Human-readable restaurant/table labels prominent; technical identifiers shown only when useful.
-131. [ ] 375 CSS-pixel mobile and conventional desktop layouts remain usable without horizontal page scroll.
-132. [ ] Visible input labels, apparent keyboard focus and sufficient text/control contrast throughout.
+131. [x] 375 CSS-pixel mobile and conventional desktop layouts remain usable without horizontal page scroll.
+132. [x] Visible input labels, apparent keyboard focus and sufficient text/control contrast throughout.
 133. [ ] Considered empty/loading/error states and consistent navigation across required routes; no custom asset required.
-134. [ ] Signup inputs expose signup-email,signup-password,signup-display-name and signup-submit button.
-135. [ ] Login inputs/button expose login-email,login-password,login-submit.
-136. [ ] auth-error exists only when auth error present; current-user appears every signed-in screen and contains display name; logout-button provided.
-137. [ ] Logout removes active browser auth and all routes reflect signed-out state; account/token server rules remain inherited.
-138. [ ] restaurant-select option values are restaurant IDs; date-input YYYY-MM-DD; party-size-input number; search-button runs search.
-139. [ ] availability-grid holds results; no-slots is shown instead of grid when day has no slots.
+134. [x] Signup inputs expose signup-email,signup-password,signup-display-name and signup-submit button.
+135. [x] Login inputs/button expose login-email,login-password,login-submit.
+136. [x] auth-error exists only when auth error present; current-user appears every signed-in screen and contains display name; logout-button provided.
+137. [x] Logout removes active browser auth and all routes reflect signed-out state; account/token server rules remain inherited.
+138. [x] restaurant-select option values are restaurant IDs; date-input YYYY-MM-DD; party-size-input number; search-button runs search.
+139. [x] availability-grid holds results; no-slots is shown instead of grid when day has no slots.
 140. [ ] Single cells have slot-{table_id}-{HH:MM} testids and data-available=true exactly when table_id in searched slot available_table_ids; false otherwise.
-141. [ ] Click available single cell opens correct table/time booking form; unavailable click does nothing.
-142. [ ] Signed-out available-cell click produces auth-error or navigates /login; authenticated booking requires server auth.
+141. [x] Click available single cell opens correct table/time booking form; unavailable click does nothing.
+142. [x] Signed-out available-cell click produces auth-error or navigates /login; authenticated booking requires server auth.
 143. [ ] booking-form, booking-summary, booking-party-size and booking-submit testids present; summary includes all selected table labels/local start.
 144. [ ] booking-party-size numeric input prefilled with searched party size; booking-error present only on confirmed refusal.
 145. [ ] Keep form after successful booking; unchanged submit repeats original reference with no error/second booking.
@@ -227,4 +227,22 @@ Restructuring/source commit: `2781da0c3ca622a20f7a5663f6e986f1f53027fe`.
 - Network-isolated run used `--network none --cpus=2 --memory=2g` with `PORT` unset. `docker inspect` reported `none|2000000000|2147483648`; internal `/health` returned HTTP 200, the external TCP probe returned `connect_ex=101` (network unreachable), and Docker reported 0.01% CPU / 14.5 MiB of 2 GiB.
 - Rechecked `git diff --quiet 344e085d8e3d0629dcc17fc95f22a43efe2a85d2 -- stage-1`: success; frozen Stage 1 remains unchanged.
 
-This baseline check covers build/start, the health and restaurant routes, and constrained/no-network operation. The Stage 2 gate remains closed until the coordinator confirms both builder baselines; no new Stage 2 behavior or UI was added.
+This baseline check covers build/start, the health and restaurant routes, and constrained/no-network operation. The Stage 2 gate was subsequently released by the coordinator in dispatch `f854261b07c28e247ba7a2bfc6ee74b1af599936`; feature implementation now proceeds on the owned interface files.
+
+## Feature implementation checks so far
+
+- `node --check` on `static/app.js`, `static/common.js`, and `static/grid.js`, plus `python -m py_compile` on `tablekeeper/server.py` and `tablekeeper/web.py`: passed.
+- Early `docker build --no-cache -t tablekeeper:stage-2 .\stage-2`: passed with `static/` and `templates/` copied into the image. A full integrated rebuild remains for the final check pass.
+- Real Chromium browser run of `verification/stage2/run_stage2.py --part browser --out checks/stage2-interface-preliminary -k Screens`, using the supplied interpreter and installed `CHROMIUM_PATH`: 5 tests, zero failures/errors/skips.
+- Real Chromium browser run with `-k test_L134_L135_L136_L137_signup_login_logout`: 1 test, zero failures/errors/skips.
+- Container smoke request to `/`, `/signup`, `/login`, `/lookup`, `/static/site.css`, `/static/app.js`, `/static/grid.js`, and `/health`: all HTTP 200. Routes returned HTML and assets loaded without browser page errors.
+- At 375 CSS pixels, all four route screens had no horizontal overflow and every input/select was associated with a label. A separate legacy single-table browser flow exercised login, search, selection, and confirmation with a table_id-only API reply; it passed and rendered the retained table label.
+- Preliminary browser screenshots are outside source at `C:/Users/Prince/Documents/darkfactory/band-work/checks/stage2-interface-smoke/`. Full visual and workflow evidence will be captured in the final checks folder.
+- The first visual pass found that the sign-out button measured 23px and the native date input had no computed keyboard outline. The button now has a 36px minimum height and focus-in adds a visible ring; the desktop/mobile keyboard-focus and visual-system checks then passed (2 each, zero failures/errors/skips).
+- The first lookup flow displayed `Confirmed` because of CSS capitalization, while the API contract requires the exact lowercase status. The transform was removed; the lookup/cancel flow then passed (1 test, zero failures/errors/skips).
+- The unavailable-cell regression initially used native `disabled`, which prevented the browser check from clicking it. The cell now remains focusable, reports its reserved state in its accessible name, and has an explicit no-op click handler; the available/unavailable click checks passed after the change.
+- A 375px and 1280px Chromium run measured document width at each of the four routes and at the single-table grid, form, and confirmation states. Every measurement matched the viewport; the confirmation reference remained a single exact A-Z0-9 reference and the browser reported no page errors.
+- The default Playwright Chromium revision was absent, but an installed Playwright Chromium at `%LOCALAPPDATA%/ms-playwright/chromium-1228/` worked through `CHROMIUM_PATH`; nothing was installed into the supplied interpreter.
+- Final interface image build at this checkpoint: `docker build --no-cache -t tablekeeper:stage-2 .\stage-2` passed. Under `--network none --cpus=2 --memory=2g -e PORT=8080`, health became ready in 0.84s; the four screens returned `text/html; charset=utf-8`, all three bundled scripts and the stylesheet returned HTTP 200 with their expected MIME types, `/health` and `/restaurants` returned JSON, IANA `Europe/Berlin`/`America/New_York` zones loaded, and egress to `1.1.1.1:443` failed with `connect_ex=101`. Inspect reported `none|2000000000|2147483648`; Docker stats showed 0.02% CPU and 14.87 MiB / 2 GiB.
+- The current source-level Chromium checks passed for screen/navigation (5), signup/login/logout (1), visual route audits (2), keyboard focus (2), visual system/touch targets (2), search/no-slots controls (1), human labels (1), available cell form opening (1), signed-out selection handling (1), unavailable-cell no-op (1), and single booking lookup/cancel (1): zero failures/errors/skips after the listed fixes. The test runner was supplied by verification/stage2; no tests were edited.
+- Stage 2 pair API flows, uncertain/409 recovery against the new core, and stopped-source import continuity still need the integrated run against the core builder's feature implementation. This checkpoint does not claim Stage 2 acceptance.

@@ -15,6 +15,8 @@ COPY requirements.txt /app/requirements.txt
 RUN python -m pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
 
 COPY tablekeeper /app/tablekeeper
+COPY static /app/static
+COPY templates /app/templates
 
 EXPOSE 8080
 CMD ["python", "-m", "tablekeeper.server"]
