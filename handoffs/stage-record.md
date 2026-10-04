@@ -1,6 +1,8 @@
 # Stage record
 
-## Stage 2 report record (acceptance pending)
+## Stage 2 report record (accepted and frozen)
+
+Final accepted94e7654c4427fa3c087279675edbe1cda4f5a4fc,reviewer738144329a3e6fcbdc33d2c5e0c74b2665d0f668. Clean source restored and verified;frozen2026-10-04T08:48:22+08:00. Final report final-report-stage-2.md includes completedmetrics,times,allfindings and limitations. L197reportrecord and L114harnessclaim focused checks passed at tester786bddbcf258bbb269fa1b7186e1e0d562b07d63. Historical pending statements below describe earlier record,not current status.
 
 Harness claimed stage: 2. Report C:/Users/Prince/Documents/darkfactory/band-work/checks/harness-s2-94e7654/report.json; console harness-s2-94e7654.console.txt. Stage1 120/120 and stage2 25/25, zero skips/deselections; expected extra stage3 failure. Report stamps b50ac1b bookkeeping revision with stage2 tree identical audited candidate94e7654c4427fa3c087279675edbe1cda4f5a4fc.
 Target94e7654; reviewer audit cdb6ede7c4cb87d11f24b5d4ad6947432566b1a2 no defects; final acceptance pending tester complete evidence decision. Tester full evidence8be25eb3a3d3d23ccc8eb86221cac376fcf6d7ad,326 tests covering197 ledger lines,4 historical failures,zero errors/skips: pre-run kickoff mismatch,2 superseded stage1 strict shapes replaced by passingstage2 checks,and this report-record check pending at run time. Actual stoppedstage1 transfer plus same-tab browser upgrade/retry/signin/lookup pass.40screenshots in checks/tester-s2-94e7654-r3/screenshots;375px/1280px usable,no overflow,labels/focus,zero serious/critical axe findings.
