@@ -25,6 +25,8 @@ def availability(state, query):
     accepted = policies.selected(state, config, parsed['date'])
     config = policies.configured(config, accepted)
     occupied = [r for r in state["reservations"] if r["status"] == "confirmed"]
+    from .closures import occupied as closed
+    occupied.extend(closed(state))
     result = []
     for value, start, end in slots(config, parsed["date"]):
         candidate = {"restaurant_id": config["id"], "starts_at": start, "ends_at": end}

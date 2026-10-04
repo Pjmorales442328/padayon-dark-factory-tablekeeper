@@ -5,10 +5,10 @@ from .receipts import receipt_record
 from .selections import selected, members
 
 
-def snapshot_response(state, data, user):
+def snapshot_response(state, data, user, confirmed=True):
     from .loading import booking_record
     require(isinstance(data, dict), "Invalid response snapshot")
-    require(data.get("status") == "confirmed", "Receipt must snapshot a confirmed booking")
+    require(not confirmed or data.get("status") == "confirmed", "Receipt must snapshot a confirmed booking")
     booking = booking_record(state, {**data, "user_id": user}, True)
     actual = next((r for r in state["reservations"]
                    if r["reservation_id"] == booking["reservation_id"]), None)

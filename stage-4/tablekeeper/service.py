@@ -4,6 +4,7 @@ from threading import RLock
 from .validation import Failure, require
 from . import accounts, bookings, browsing, loading, receipts, restaurants
 from . import policies, series
+from . import revisions
 from .api_routes import private_read, write_path, operate, booking_read, booking_write
 
 
@@ -87,6 +88,7 @@ class Service:
         # Build receipt before publishing state to keep all write components atomic.
         working = deepcopy(self._state)
         status, response = operate(working, path, body, user)
+        revisions.finish(self._state, working, path)
         receipts.save(working, user, method, path, key, body, response)
         self._state = working
         return status, response
@@ -99,6 +101,7 @@ class Service:
             return booking_read(self._state, parts, record)
         working = deepcopy(self._state)
         result = booking_write(working, method, parts, body, user)
+        revisions.finish(self._state, working, '/' + '/'.join(parts))
         self._state = working
         return result
 

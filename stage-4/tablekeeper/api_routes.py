@@ -1,6 +1,6 @@
 """Small route predicates and domain operation dispatch independent of transport."""
 from .validation import Failure, require
-from . import bookings, moves, policies, chronology, series
+from . import bookings, moves, policies, chronology, series, replans, series_amend
 
 
 def private_read(parts, method):
@@ -11,8 +11,14 @@ def private_read(parts, method):
 
 def write_path(path):
     parts = path.strip('/').split('/')
-    return path in ('/reservations', '/reservation-moves', '/series') or (
-        len(parts) == 3 and parts[0] == 'restaurants' and parts[2] == 'policies')
+    return path in ('/reservations', '/reservation-moves', '/series') or restaurant_write(parts) or (
+        len(parts) == 3 and parts[0] == 'series' and parts[2] == 'amend')
+
+
+def restaurant_write(parts):
+    if len(parts) == 3 and parts[0] == 'restaurants':
+        return parts[2] in ('policies', 'replans')
+    return len(parts) == 5 and parts[0] == 'restaurants' and parts[2] == 'replans' and parts[4] == 'apply'
 
 
 
@@ -21,7 +27,14 @@ def operate(state, path, body, user):
                   '/series': series.create}
     if path in operations:
         return operations[path](state, body, user)
-    return policies.publish(state, body, user, path.strip('/').split('/')[1])
+    parts = path.strip('/').split('/')
+    if parts[0] == 'series':
+        return series_amend.amend(state, body, user, parts[1])
+    if parts[2] == 'policies':
+        return policies.publish(state, body, user, parts[1])
+    if len(parts) == 3:
+        return replans.preview(state, body, user, parts[1])
+    return replans.apply(state, body, user, parts[1], parts[3])
 
 
 

@@ -9,6 +9,9 @@ from .snapshots import snapshot_response
 def validate_extra(state, receipt):
     if receipt['path'] == '/series':
         validate_series(state, receipt)
+    elif receipt['path'].endswith('/amend') or '/replans' in receipt['path']:
+        from .state_plan_receipts import validate
+        validate(state, receipt)
     else:
         validate_policy(state, receipt)
 
@@ -39,6 +42,7 @@ def validate_series(state, receipt):
     require(len(originals) == len(agreement['occurrences']) == body['count'], 'Series count mismatch')
     snapshots = []
     for index, (original, current) in enumerate(zip(originals, agreement['occurrences'])):
+        require(isinstance(original, dict), 'Invalid adoption occurrence')
         require(set(original) == {'index', 'reference', 'exception', 'reservation'},
                 'Invalid adoption occurrence fields')
         require(type(original['index']) is int and original['index'] == index,
@@ -73,7 +77,9 @@ def validate_counters(state, agreement, snapshots):
     for item, original in zip(agreement['occurrences'], snapshots):
         changes = [e for e in state['histories'][item['reference']]
                    if e['revision'] > original['revision']]
-        require(item['exception'] == any(e['event'] == 'changed' for e in changes),
+        collective = set(agreement.get('collective_events', []))
+        require(item['exception'] == any(e['event'] == 'changed' and e['at'] not in collective
+                                         for e in changes),
                 'Invalid occurrence exception history')
         events.update(e['at'] for e in changes)
     require(agreement['revision'] == 1 + len(events), 'Invalid series revision history')
@@ -83,6 +89,6 @@ def publication_coverage(state):
     expected = {(rid, p['policy_version']) for rid, entries in state['policies'].items()
                 for p in entries}
     actual = [(r['path'].strip('/').split('/')[1], r['response']['policy_version'])
-              for r in state['receipts'] if r['path'].startswith('/restaurants/')]
+              for r in state['receipts'] if r['path'].endswith('/policies')]
     require(set(actual) == expected and len(actual) == len(set(actual)),
             'Missing or duplicate publication receipt')

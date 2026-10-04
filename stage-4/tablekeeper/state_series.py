@@ -30,4 +30,14 @@ def agreement(state, value):
         occurrences.append(deepcopy(data))
     require(len(restaurants) == 1, 'Series spans restaurants')
     result['occurrences'] = occurrences
+    metadata(result, value)
     return result
+
+
+def metadata(result, value):
+    if 'scheduled_dates' in value:
+        from .policies import calendar
+        dates = [calendar(d) for d in array(value['scheduled_dates'])]
+        require(len(dates) == len(result['occurrences']), 'Schedule count mismatch')
+        result['scheduled_dates'] = dates
+    result['collective_events'] = deepcopy(array(value.get('collective_events', [])))

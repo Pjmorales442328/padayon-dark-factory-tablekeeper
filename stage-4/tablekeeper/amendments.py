@@ -50,7 +50,7 @@ def cancel(state, ref, user):
 
 
 
-def commit_changes(state, originals, candidates):
+def commit_changes(state, originals, candidates, exception=True):
     changed_refs = []
     at = chronology.next_at(state)
     for original, candidate in zip(originals, candidates):
@@ -61,5 +61,5 @@ def commit_changes(state, originals, candidates):
         original.clear()
         original.update(candidate)
     from .series import affected
-    affected(state, changed_refs, True)
+    affected(state, changed_refs, exception)
 

@@ -56,6 +56,8 @@ def create(state, body, user):
                  'interval_weeks': data['interval_weeks'],
                  'occurrences': [{'index': i, 'reference': r['reference'], 'exception': False}
                                  for i, r in enumerate([anchor, *candidates])]}
+    agreement['scheduled_dates'] = [r['starts_at_local'][:10] for r in [anchor, *candidates]]
+    agreement['collective_events'] = []
     for record in candidates:
         state['reservations'].append(record)
         chronology.created(state, record)

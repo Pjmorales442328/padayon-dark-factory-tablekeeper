@@ -16,7 +16,8 @@ from .state_loading import validate_version, validate_agreement_receipts
 
 def empty():
     return {"users": [], "restaurants": [], "reservations": [], "tokens": {}, "receipts": [],
-            'policies': {}, 'histories': {}, 'series': [], 'domain_version': 3}
+            'policies': {}, 'histories': {}, 'series': [], 'domain_version': 4,
+            'plans': [], 'closures': [], 'restaurant_revisions': {}, 'restaurant_events': {}}
 
 
 def booking_record(state, data, importing=False):
@@ -105,6 +106,8 @@ def loaded(data, importing=False):
         from .state_series import load as load_series
         load_history(state, data.get('histories') if importing else None)
         load_series(state, data.get('series', []) if importing else [])
+        from .state_stage4 import load as load_stage4
+        load_stage4(state, data, importing)
         if importing:
             require("tokens" in data and "receipts" in data, "Incomplete imported state")
             state["tokens"] = tokens_record(state, data["tokens"])

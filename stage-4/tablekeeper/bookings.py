@@ -40,6 +40,8 @@ def overlaps(left, right):
 def occupancy(state, candidates, excluded=()):
     occupied = [r for r in state["reservations"]
                 if r["status"] == "confirmed" and r["reference"] not in excluded]
+    from .closures import occupied as closed
+    occupied.extend(closed(state))
     for candidate in candidates:
         if candidate["status"] != "confirmed":
             continue

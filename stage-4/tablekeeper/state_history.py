@@ -40,7 +40,8 @@ def validate(state, record, entries):
 
 def validate_identity(entry, index, previous_at):
     require(isinstance(entry, dict), 'Invalid history entry')
-    require(set(entry) == {'seq', 'at', 'event', 'changes', 'revision', 'accepted_terms'},
+    extra = {'plan_id'} if entry.get('event') == 'reassigned' else set()
+    require(set(entry) == {'seq', 'at', 'event', 'changes', 'revision', 'accepted_terms'} | extra,
             'Invalid history fields')
     require(type(entry['seq']) is int and entry['seq'] == index, 'Invalid history sequence')
     at = timestamp(entry['at'])
@@ -50,7 +51,7 @@ def validate_identity(entry, index, previous_at):
 
 def reconstruct(state, record, previous, entry):
     event = entry['event']
-    require(event in ('created', 'changed', 'cancelled'), 'Invalid event')
+    require(event in ('created', 'changed', 'cancelled', 'reassigned'), 'Invalid event')
     require((previous is None) == (event == 'created'), 'Invalid created event order')
     require(previous is None or previous['status'] == 'confirmed', 'Event after cancellation')
     revision = 1 if previous is None else previous['revision'] + 1
@@ -58,7 +59,7 @@ def reconstruct(state, record, previous, entry):
     data = apply_changes(previous, entry)
     config = restaurant(state, record['restaurant_id'])
     accepted = policies.validate_terms(state, config, entry['accepted_terms'])
-    if event == 'cancelled':
+    if event in ('cancelled', 'reassigned'):
         require(canonical(accepted) == canonical(previous['accepted_terms']), 'Cancel changed terms')
     body = {'restaurant_id': record['restaurant_id'], **data}
     current = bookings.values(state, body, accepted)
@@ -84,6 +85,15 @@ def apply_changes(previous, entry):
 
 
 def validate_delta(previous, current, entry):
+    if entry['event'] == 'reassigned':
+        from .validation import identifier
+        identifier(entry['plan_id'])
+        require(members(previous) != members(current), 'Empty reassignment')
+        expected = [{'field': 'table_ids', 'from': members(previous), 'to': members(current)}]
+        require(canonical(expected) == canonical(entry['changes']), 'Invalid reassigned changes')
+        require(previous['starts_at_local'] == current['starts_at_local'] and
+                previous['party_size'] == current['party_size'], 'Repair changed diner fields')
+        return
     expected = [] if entry['event'] == 'cancelled' else chronology.changes(previous, current)
     require(canonical(expected) == canonical(entry['changes']), 'Inconsistent history changes')
     require(entry['event'] != 'changed' or bool(expected), 'Empty changed event')
