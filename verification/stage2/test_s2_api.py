@@ -545,8 +545,8 @@ class Races(Base2):
         # the invariant is that exactly one booking holds the slot afterwards
         a = self.ok_book(self.ada, f"{THU}T21:00", table="t_3", party=2)
         outs = self.burst([
-            lambda: self.api.call("PATCH", f"/reservations/{a['reference']}", {"starts_at_local": T, "table_ids": ["t_3"]},
-                                  token=self.ada),
+            lambda: self.api.call("PATCH", f"/reservations/{a['reference']}",
+                                  {"starts_at_local": T, "table_ids": ["t_3"], "party_size": 2}, token=self.ada),
             lambda: self.api.call("POST", "/reservation-moves", {"moves": [{"reference": a["reference"], "starts_at_local": T,
                                                                            "table_ids": ["t_2", "t_3"], "party_size": 8}]},
                                   token=self.ada, key="x4")])
