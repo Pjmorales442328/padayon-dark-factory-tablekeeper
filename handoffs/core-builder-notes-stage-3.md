@@ -296,3 +296,6 @@ Plan: inspect separation, preserve behavior, commit copied owned modules, verify
 - [ ] 291. Browserallinheritedflows retainnewresponsefields andselectedpolicyavailabilitywithoutnewrequiredscreens;375px/1280px,label/focus/contrast/recoverystates/axe/upgradevisualevidence.
 - [ ] 292. Record exactstage/rejection start/end,fullcandidate/reviewrevision,harnessclaimedstage3,newfolderreport,perseatresults,maintainabilityvsstage2/openlimits.
 Restructuring decision: justified no-op. Domain modules already isolate selectors, booking rules, moves, snapshots, loading, authentication and dispatch; copied files match frozen Stage 2. Adding helper indirection now would not improve their boundaries. Future policies/chronology/series belong in separate modules after gate release.
+
+- [x] 117. Copied domain inspected, justified no-op restructuring committed independently at aa9e4a22dcf7d01a62b514fdc733956ef5ca85f8; inherited baseline verified.
+Baseline only: all feature ledger boxes remain pending until release. Full independent inherited run326/322pass/4retained failures/0errors/0skips; supplied inherited harness120+25passes. Core metrics unchanged, frozen stages clean. Evidence details in core-builder-baseline-stage-3.md.
