@@ -1,6 +1,6 @@
 # Stage4 baseline review handoff
 Repository C:/Users/Prince/Documents/darkfactory/band-work/result.
-Reviewer: review exact core restructuring88686a81f626aec2e8b28cd01266a5acec7b1b20, committed evidence6b2a3721debb5a4fcb6df67326b2fd4006302a0f at handoffs/core-builder-baseline-stage-4.md. Also review interface baseline8e4e161166d4cae499a587acd723d50d8b39a0a2 at handoffs/interface-builder-baseline-stage-4.md. Verify scoped behavior-preserving changes, inherited behavior and frozenStages1–3 before baselineacceptance; noStage4featureacceptance from absentfeatures. Coreimportboundaries movedtop-level only; report explicitly3baselineevidencefailures and absentStage4features rather than cleanfullsuite. Confirm no genuine regression/complexityincrease from restructure. Complete351ledger/fullfourcontracts below. Return separate exact baseline decisions and committedfindings. Coordinatorfeaturegate remainsclosed untilbothscopedacceptances.
+Reviewer: review exact core restructuring88686a81f626aec2e8b28cd01266a5acec7b1b20, committed evidence6b2a3721debb5a4fcb6df67326b2fd4006302a0f at handoffs/core-builder-baseline-stage-4.md. Interface copied-source commit8e4e161166d4cae499a587acd723d50d8b39a0a2 is present, but a separate committed baseline evidence report has not yet been located; review core now, hold interface decision until its evidence arrives. No interface report is claimed here. Verify scoped behavior-preserving changes, inherited behavior and frozenStages1–3 before baselineacceptance; noStage4featureacceptance from absentfeatures. Coreimportboundaries movedtop-level only; report explicitly3baselineevidencefailures and absentStage4features rather than cleanfullsuite. Confirm no genuine regression/complexityincrease from restructure. Complete351ledger/fullfourcontracts below. Return separate exact baseline decisions and committedfindings. Coordinatorfeaturegate remainsclosed untilbothscopedacceptances.
 
 # Stage4 initial dispatch and restructuring gate
 Repository C:/Users/Prince/Documents/darkfactory/band-work/result.
@@ -1464,7 +1464,6 @@ unchanged items.
 Replays return that original response with 200, even after amendments or cancellations.
 No-op moves retain all existing values. Export/import preserves successful batch receipts
 as well as the resulting bookings. No batch UI is required.
-
 
 
 
