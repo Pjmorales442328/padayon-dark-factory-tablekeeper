@@ -715,6 +715,10 @@ The copied Stage 4 browser already has separate `app.js`, `common.js`, and `grid
 
 ## Baseline action/evidence
 
-- No runtime code or checks changed before this ledger record.
-- The pre-feature copied interface commit will contain this checklist and the Stage 4 `RUN.md` correction only.
-- Behavior verification and maintainability comparison will be recorded after the baseline commit, before the feature gate.
+- Baseline commit: `8e4e161166d4cae499a587acd723d50d8b39a0a2`, author `interface-builder <interface-builder@local.test>`, `2026-10-04T18:04:02+08:00`. It contains this full 351-line ledger checklist, all copied owned Stage 4 interface/transport/package files, and only a Stage 4 tag/path correction in `RUN.md`; runtime code remains byte-identical to Stage 3.
+- `git diff --check -- stage-4/RUN.md handoffs/interface-builder-notes-stage-4.md`: passed before commit.
+- `docker build --no-cache -t tablekeeper:stage-4 .\stage-4`: passed; log at `C:/Users/Prince/Documents/darkfactory/band-work/checks/stage4-interface-baseline/docker-build.log`.
+- Started image as `docker run -d --name tk-stage4-interface-baseline --network none --cpus=2 --memory=2g -e PORT=18084 -p 18084:18084 tablekeeper:stage-4`. Inside the isolated container, `/health`, `/`, `/signup`, `/login`, `/lookup`, `/static/app.js`, and `/static/site.css` all returned 200 with expected JSON/HTML/JavaScript/CSS content types. Container was stopped after the check.
+- Inherited Stage 3 browser command: supplied interpreter `verification/stage3/run_stage3.py --part browser --out C:/Users/Prince/Documents/darkfactory/band-work/checks/stage4-interface-baseline/stage3-browser`, with `S3_DIR` set to `stage-4`: 5 run, 5 passed, 0 failures, 0 errors, 0 skips, 0 superseded. This includes the policy grid, late-search, pair-booking, and real stopped-source Stage 2-to-Stage 4 upgrade tests. Log and service logs are in the external checks folder above.
+- Maintainability comparison is unchanged from the Stage 3 interface baseline because owned executable files/assets were copied byte-for-byte: Python server/web radon mean CC 2.64, maximum B (9); Python lizard 181 NLOC, 20 functions, average CCN 2.6, zero warnings; JavaScript lizard 359 NLOC, 46 functions, average CCN 2.7, maximum CCN 14, zero warnings. The UI module line counts remain app.js 290, common.js 50, grid.js 42. Duplication-tool limits are inherited from the Stage 3 report; no new duplication metric was available or run for this baseline.
+- Stage 4 feature-level ledger evidence remains pending the coordinator's baseline-gate review and feature release.
