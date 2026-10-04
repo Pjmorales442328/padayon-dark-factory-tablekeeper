@@ -33,3 +33,12 @@ At R1 candidate `118bff234a10e6548283913b9f0cc3188bfc7a25`, the parallel policy 
 The supplied-interpreter command `C:\Users\Prince\Documents\darkfactory\dark-factory-wearedevs\.venv\Scripts\python.exe C:\Users\Prince\Documents\darkfactory\band-work\checks\stage3-interface-upgrade\upgrade-proof.py` passed. It started the Stage 2 source, completed search and single/pair booking plus batch-move setup, stopped the source and confirmed port `18444` had no listener before Stage 3 import. In the same tab without reload, auth, form and pending key/body survived; the unchanged request replayed its original response with 200. Old references and create/move receipts remained valid. The script reported no page errors or horizontal overflow at 375px. Logs and `same-tab-recovered-375.png` are outside the repository in `C:/Users/Prince/Documents/darkfactory/band-work/checks/stage3-interface-upgrade/`.
 
 The fix is limited to the optional legacy policy route behavior; no frozen Stage 1/2 source or tests were changed. This resolves interface finding F1 for integrated review and does not claim overall Stage 3 acceptance.
+
+### Post-commit R1 rerun
+
+After commit `8093f21e49c005e03d770751e0f222a060c224ca`, both upgrade checks passed:
+
+- Independent committed browser check: supplied interpreter `verification/stage3/run_stage3.py --part browser -k upgrade --out C:/Users/Prince/Documents/darkfactory/band-work/checks/stage3-r1-f1-recheck` reported `ran 1, failed 0, errors 0, skipped 0, superseded-by-stage-3 0`.
+- Focused stopped-source proof: supplied interpreter ran `C:/Users/Prince/Documents/darkfactory/band-work/checks/stage3-interface-upgrade/upgrade-proof.py`, exit 0, reporting that Stage 2 stopped with port closure confirmed before Stage 3 import and same-tab auth/form/key/body, original receipt retry, references and batch receipt all survived.
+
+The service and interface paths used by these runs (`stage-3/static/app.js`, `stage-3/static/grid.js`, `stage-3/tablekeeper/**`, `stage-3/templates/**`) compare unchanged with commit `8093f21e`; later review/checkpoint commits did not alter the tested application files. Evidence logs and screenshot artifacts remain outside the repository under `checks/stage3-r1-f1-recheck/` and `checks/stage3-interface-upgrade/`.
