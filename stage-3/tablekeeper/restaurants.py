@@ -31,6 +31,10 @@ def restaurant_record(data):
     unique(result["tables"], "id")
     if "combinable" in data:
         result["combinable"] = combinations(data["combinable"], result)
+    if 'manager_user_ids' in data:
+        managers = [identifier(v) for v in array(data['manager_user_ids'])]
+        require(len(set(managers)) == len(managers), 'Duplicate manager')
+        result['manager_user_ids'] = managers
     return result
 
 

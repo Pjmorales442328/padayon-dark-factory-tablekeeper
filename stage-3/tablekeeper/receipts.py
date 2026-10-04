@@ -58,7 +58,8 @@ def receipt_record(data):
     record = fields(data, {"user_id": identifier, "method": text, "path": text,
                            "key": key_value, "body": json_value, "response": json_value})
     require(record["method"] == "POST", "Invalid receipt method")
-    require(record["path"] in ("/reservations", "/reservation-moves"), "Invalid receipt path")
+    from .service import write_path
+    require(write_path(record['path']), 'Invalid receipt path')
     require(isinstance(record["body"], dict), "Invalid receipt body")
     require(isinstance(record["response"], dict), "Invalid receipt response")
     return record

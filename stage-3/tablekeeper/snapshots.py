@@ -16,11 +16,30 @@ def snapshot_response(state, data, user):
     immutable = ("user_id", "reference", "restaurant_id", "created_at")
     require(all(actual[k] == booking[k] for k in immutable), "Invalid receipt identity")
     expected = set(booking) - {"user_id"}
+    if 'revision' not in data:
+        expected.remove('revision')
+        expected.remove('accepted_terms')
     if "table_ids" not in data:
         require(len(members(booking)) == 1, "Legacy snapshot must be singleton")
         expected.remove("table_ids")
     require(set(data) == expected, "Invalid snapshot fields")
+    if 'revision' in data:
+        verify_event_snapshot(state, actual, booking)
     return booking
+
+
+def verify_event_snapshot(state, actual, snapshot):
+    from .state_history import reconstruct
+    from .receipts import canonical
+    current = None
+    for entry in state['histories'][actual['reference']]:
+        current = reconstruct(state, actual, current, entry)
+        if current['revision'] == snapshot['revision']:
+            break
+    keys = ('table_ids', 'starts_at_local', 'party_size', 'starts_at', 'ends_at',
+            'accepted_terms', 'revision', 'status')
+    require(current is not None and all(canonical(current[k]) == canonical(snapshot[k])
+                                       for k in keys), 'Snapshot does not match original event')
 
 
 def validate_receipt(state, data):
@@ -29,11 +48,14 @@ def validate_receipt(state, data):
     require(any(u["id"] == user for u in state["users"]), "Receipt user missing")
     if receipt["path"] == "/reservations":
         booking = snapshot_response(state, receipt["response"], user)
-        body_values = values(state, receipt["body"])
+        body_values = values(state, receipt["body"], booking['accepted_terms'])
         require(all(booking[k] == v for k, v in body_values.items()),
                 "Receipt body inconsistent with response")
-    else:
+    elif receipt['path'] == '/reservation-moves':
         validate_move_receipt(state, receipt)
+    else:
+        from .state_receipts import validate_extra
+        validate_extra(state, receipt)
     return receipt
 
 

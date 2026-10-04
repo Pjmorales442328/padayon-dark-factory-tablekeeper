@@ -1,6 +1,6 @@
 """Validate every move before checking resulting occupancy or committing."""
 from .validation import require
-from .bookings import owned, changed, occupancy, view
+from .bookings import owned, changed, occupancy, view, commit_changes
 
 
 def move_items(body):
@@ -29,7 +29,5 @@ def move(state, body, user):
         originals.append(original)
         candidates.append(candidate)
     occupancy(state, candidates, [r["reference"] for r in originals])
-    for original, candidate in zip(originals, candidates):
-        original.clear()
-        original.update(candidate)
+    commit_changes(state, originals, candidates)
     return 201, {"reservations": [view(r) for r in candidates]}

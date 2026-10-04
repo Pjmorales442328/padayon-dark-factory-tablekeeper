@@ -3,6 +3,7 @@ from copy import deepcopy
 from threading import RLock
 from .validation import Failure, require
 from . import accounts, bookings, browsing, loading, moves, receipts, restaurants
+from . import policies, chronology, series
 
 
 class Service:
@@ -45,6 +46,8 @@ class Service:
         parts = path.strip("/").split("/")
         if method == "GET" and len(parts) == 2 and parts[0] == "restaurants":
             return 200, restaurants.restaurant(self._state, parts[1])
+        if method == 'GET' and len(parts) == 3 and parts[0] == 'restaurants' and parts[2] == 'policies':
+            return policies.listing(self._state, parts[1])
         return self.private(method, path, parts, headers, body)
 
     def replace(self, state):
@@ -59,11 +62,14 @@ class Service:
                                     for r in self._state["restaurants"]]}
 
     def private(self, method, path, parts, headers, body):
-        require(parts[0] in ("reservations", "reservation-moves"), "Route not found", 404, "not_found")
-        hidden = self.existing_reference(parts)
+        require(parts[0] in ("reservations", "reservation-moves", 'restaurants', 'series'),
+                "Route not found", 404, "not_found")
+        hidden = self.existing_reference(parts) or private_read(parts, method)
         user = accounts.authenticate(self._state, headers, hidden)
-        if method == "POST" and path in ("/reservations", "/reservation-moves"):
+        if method == "POST" and write_path(path):
             return self.idempotent(user, method, path, headers, body)
+        if method == 'GET' and len(parts) == 2 and parts[0] == 'series':
+            return 200, series.view(self._state, series.owned(self._state, parts[1], user))
         if method == "GET" and path == "/reservations":
             return browsing.reservations(self._state, user)
         return self.single(method, parts, body, user)
@@ -77,10 +83,9 @@ class Service:
         key, replay = receipts.replay(self._state, user, method, path, headers, body)
         if replay is not None:
             return replay
-        operation = bookings.create if path == "/reservations" else moves.move
         # Build receipt before publishing state to keep all write components atomic.
         working = deepcopy(self._state)
-        status, response = operation(working, body, user)
+        status, response = operate(working, path, body, user)
         receipts.save(working, user, method, path, key, body, response)
         self._state = working
         return status, response
@@ -88,10 +93,12 @@ class Service:
     def single(self, method, parts, body, user):
         require(len(parts) in (2, 3) and parts[0] == "reservations", "Route not found", 404, "not_found")
         ref = parts[1]
-        if len(parts) == 2 and method == "GET":
-            return 200, bookings.view(bookings.owned(self._state, ref, user))
-        if len(parts) == 2 and method == "PATCH":
-            return bookings.amend(self._state, body, ref, user)
-        if len(parts) == 3 and parts[2] == "cancel" and method == "POST":
-            return bookings.cancel(self._state, ref, user)
-        raise Failure(404, "not_found", "Route not found")
+        if method == 'GET':
+            record = bookings.owned(self._state, ref, user)
+            return booking_read(self._state, parts, record)
+        working = deepcopy(self._state)
+        result = booking_write(working, method, parts, body, user)
+        self._state = working
+        return result
+
+from .api_routes import private_read, write_path, operate, inspect_booking, booking_read, booking_write
