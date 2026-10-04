@@ -142,17 +142,21 @@ class UpgradeBase:
                        token=self.tok_bob, key="u-A")
         self.assertEqual(other.status, 201, other)
 
+    def anchor_choice(self):
+        """An imported booking whose weekly repeats are free in the source data."""
+        return self.D["reference"], self.tok_bob
+
     def test_L262_imported_booking_can_be_amended_and_adopted_into_a_series(self):
         d = self.d
-        cur = d.call("GET", f"/reservations/{self.D['reference']}", token=self.tok_bob).json
-        r = d.call("PATCH", f"/reservations/{self.D['reference']}", {"expected_revision": 1, "party_size": 1}, token=self.tok_bob)
+        ref, tok = self.anchor_choice()
+        r = d.call("PATCH", f"/reservations/{ref}", {"expected_revision": 1, "party_size": 1}, token=tok)
         self.assertEqual((r.status, r.json["revision"]), (200, 2))
-        s = d.call("POST", "/series", {"anchor_reference": self.D["reference"], "count": 3, "interval_weeks": 1}, token=self.tok_bob, key="adopt-1")
+        s = d.call("POST", "/series", {"anchor_reference": ref, "count": 3, "interval_weeks": 1}, token=tok, key="adopt-1")
         self.assertEqual(s.status, 201, s)
-        self.assertEqual(s.json["occurrences"][0]["reference"], self.D["reference"])
+        self.assertEqual(s.json["occurrences"][0]["reference"], ref)
         self.assertEqual(s.json["occurrences"][0]["reservation"]["revision"], 2)
         self.assertEqual([o["reservation"]["starts_at_local"][:10] for o in s.json["occurrences"]], [T[:10], add_days(THU, 7), add_days(THU, 14)])
-        h = d.call("GET", f"/reservations/{self.D['reference']}/history", token=self.tok_bob).json["entries"]
+        h = d.call("GET", f"/reservations/{ref}/history", token=tok).json["entries"]
         self.assertEqual(h[-1]["event"], "changed")
 
     def test_L184_L205_stage1_and_2_configs_have_no_managers_and_policy_zero_availability(self):
@@ -187,6 +191,18 @@ class UpgradeBase:
 
 class TestUpgradeFromStage2(UpgradeBase, unittest.TestCase):
     SRC_DIR = FROZEN_STAGE2
+
+    def anchor_choice(self):
+        return self.A["reference"], self.tok_ada                 # on t_3: free in the following weeks (the imported pair P holds t_1, t_2)
+
+    def test_L262_L250_adoption_colliding_with_an_imported_pair_is_atomic(self):
+        d = self.d
+        before = d.call("GET", "/reservations", token=self.tok_bob).json
+        r = d.call("POST", "/series", {"anchor_reference": self.D["reference"], "count": 3, "interval_weeks": 1}, token=self.tok_bob, key="adopt-x")
+        self.err(r, 409, "table_unavailable")                       # D sits on t_1; the imported pair P holds t_1 and t_2 one week later
+        self.assertEqual(d.call("GET", "/reservations", token=self.tok_bob).json, before)
+        again = d.call("POST", "/series", {"anchor_reference": self.D["reference"], "count": 2, "interval_weeks": 2}, token=self.tok_bob, key="adopt-x")
+        self.assertEqual(again.status, 201, again)                  # two weeks apart avoids P; the failed key was never consumed
 
     def test_L184_L152_stage2_pair_bookings_and_receipts_survive(self):
         d = self.d
@@ -387,11 +403,33 @@ class ImportValidation3(Base3):
                          ("exception", ["yes", 1, None, 0])):
             self.mutate(lambda p, n, key=key: p[-1] == key and not isinstance(n, (dict, list)), bad, key)
 
+    @staticmethod
+    def in_policy_object(st, p):
+        """True when the leaf sits in a published policy or an accepted-terms snapshot (they carry policy_version / effective_from)."""
+        parent = get_at(st, p[:-1])
+        return isinstance(parent, dict) and ("policy_version" in parent or "effective_from" in parent)
+
     def test_L281_L273_terms_and_policy_fields_are_validated(self):
+        st0 = self.exp["state"]
+        # the 1..1440 / 0..10080 bounds belong to published policies and accepted terms only
         for key, bad in (("slot_minutes", [0, 1441, True, "30", 1.5, None]), ("reservation_duration_minutes", [0, 1441, True, None]),
                          ("cancellation_cutoff_minutes", [-1, 10081, True, None]), ("effective_from", ["2030-02-30", 5, None, True]),
                          ("capacities", [{}, [], "x", {"t_1": 0}, {"t_1": True, "t_2": 4, "t_3": 6}, None])):
-            self.mutate(lambda p, n, key=key: p[-1] == key, bad, key)
+            self.mutate(lambda p, n, key=key: p[-1] == key and self.in_policy_object(st0, p), bad, key + " in a policy or terms object")
+
+    def test_L281_L098_original_fixture_fields_keep_stage_1_rules(self):
+        """Fixture slot/duration/cutoff are positive integers (cutoff non-negative) with no upper bound: only wrong types and values fail."""
+        st0 = self.exp["state"]
+        leaves = [p for p, n in walk(st0) if p and p[-1] in ("slot_minutes", "reservation_duration_minutes") and not self.in_policy_object(st0, p)]
+        self.assertTrue(leaves, "restaurant configuration not visible in the opaque state")
+        for p in leaves[:4]:
+            for bad in (0, -5, True, "30", 1.5):
+                st = copy.deepcopy(st0)
+                get_at(st, p[:-1])[p[-1]] = bad
+                r = self.imp(st)
+                self.assertLess(r.status, 500, (p, bad))
+                self.err(r, 422, "validation_failed")
+                self.unchanged(f"fixture {p[-1]} {bad!r}")
 
     def test_L281_L272_history_sequence_and_events_are_validated(self):
         st0 = self.exp["state"]

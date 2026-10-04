@@ -466,7 +466,7 @@ class Moves(SeriesBase):
             self.assertEqual((r.status, r.json), (200, r1.json), "original batch response, whatever happened since")
         self.assertEqual((self.sget(s), [self.history(x, self.bob) for x in o]), later)
         self.err(self.moves([{"reference": o[1], "party_size": 1}], self.bob, key="mr-1"), 409, "idempotency_key_reuse")
-        self.assertEqual(state[0]["revision"], 3)
+        self.assertEqual(state[0]["revision"], 2, "one batch that changed two occurrences is one series increment")
 
     def test_L267_each_changed_booking_gets_one_revision_and_one_entry(self):
         refs = [self.ok_book(self.bob, f"{THU}T{h}:00", table=t, party=1)["reference"] for h, t in (("18", "t_1"), ("19", "t_2"), ("20", "t_3"))]

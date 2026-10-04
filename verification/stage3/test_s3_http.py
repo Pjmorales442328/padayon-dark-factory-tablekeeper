@@ -40,7 +40,7 @@ class Delivery3(unittest.TestCase):
             self.assertTrue(files, f"no stage-3 notes for {seat}")
             nums = set()
             for f in files:
-                nums |= {int(m) for m in re.findall(r"(?m)^\s*(\d{1,3})\.", open(os.path.join(base, f), encoding="utf-8").read())}
+                nums |= {int(m) for m in re.findall(r"(?m)^\s*(?:[-*]\s*)?(?:\[[ xX]\]\s*)?(\d{1,3})\.", open(os.path.join(base, f), encoding="utf-8").read())}
             gone = [n for n in range(1, 293) if n not in nums]
             if gone:
                 missing[seat] = gone[:20]
