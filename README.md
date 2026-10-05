@@ -14,6 +14,7 @@ Team **Padayon** | WeAreDevelopers x BAND *Dark Factory* | track **tablekeeper**
 | Quality held | worst function complexity **9 at every stage**, 0 functions above 10, largest file 132 lines, 0% duplication |
 | Time | 4h 49m of factory time (38m, 1h25m, 1h11m, 1h34m) |
 | Cost | $59.19 Band estimate for the two Claude seats (list price); three Codex seats on a flat plan, about 200M tokens |
+| Independent audit | 506 spec-derived checks pass on stage 4, plus 3,600 random operations with invariants checked each step (`operator-audit/`) |
 | Real rejections | stage 1 fixture passwords, stage 2 tester-check defects, stage 3 legacy-upgrade break, stage 4 maintainability regression |
 
 ## What the judges asked for, and where to find it
@@ -62,6 +63,7 @@ room.json      full-session export of the room, unedited
 handoffs/      ledgers, handoffs, findings, per-stage records and final reports (written by the seats)
 verification/  the tester's independent checks, written from the spec without reading the service
 stage-1 .. stage-4/   one buildable service per stage (Dockerfile, RUN.md, source), written by the seats
+operator-audit/ post-freeze test suite written from the specs (not used by the seats)
 assets/        cover image and screenshots used in this README
 ```
 
@@ -69,4 +71,4 @@ assets/        cover image and screenshots used in this README
 
 Every file under `stage-*/` was written by a seat in the room (git authors `core-builder`, `interface-builder`).
 `handoffs/` and `verification/` come from the coordinator, tester and reviewer. `README.md`, `FACTORY.md`,
-`EVIDENCE.md`, `assets/` and `.gitignore` were written by the team lead, outside any stage folder.
+`EVIDENCE.md`, `operator-audit/`, `assets/` and `.gitignore` were written by the team lead, outside any stage folder.

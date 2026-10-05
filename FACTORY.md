@@ -132,7 +132,7 @@ workers with no 5xx (max 0.60 s), 76 browser checks at 375 px and 1280 px with a
   a list of spec points the human asked the coordinator to ledger and test (for example "a preview
   never raises the revision"). It is part of the single human message, but it is human-supplied
   attention and should be counted as such.
-- Download of `room.json`, `harness` runs, and these documents were operator work.
+- Download of `room.json`, `harness` runs, the independent audit in `operator-audit/`, and these documents were operator work.
   Nothing under `stage-*/` was written or edited by a person.
 
 ## 9. Open limitations
@@ -145,3 +145,24 @@ workers with no 5xx (max 0.60 s), 76 browser checks at 375 px and 1280 px with a
   limit is 6 tables / 4 pairs / 6 considered bookings.
 - Duplicate-block detection covers Python only (0.00%); JavaScript duplication was not measured.
 - Tester evidence at stage 3 had 6 visible non-service failures, so it was not a clean suite.
+
+## 10. Independent post-freeze audit
+
+After stage 4 was frozen, the team lead (with Claude Code as operator, outside every stage folder) wrote
+`operator-audit/`, a test suite derived fresh from `spec/stage-1.md` to `stage-4.md` and separate from the
+tester seat's checks in `verification/`. The seats never saw it and nothing was changed afterwards. It asks what
+a grader's hidden checks would ask: status-code and error-code tables, time zones, races, lost browser
+responses, upgrades, and a brute-force planner that re-solves the seating problems.
+
+| Run (stage 4 image) | Outcome |
+|---|---|
+| Whole suite | **506 passed, 0 failed**, 8 skipped, 1 expected failure (chunked request bodies, disclosed in section 9) |
+| 3,600 random operations (book, cancel, amend, move, series, amend, replan) | all invariants held after every step: no double occupancy, availability equals the model, history length equals revision, restaurant revision counts as specified |
+| Seating plans against the brute-force oracle | identical on 83 random problems, including chained closures |
+| Exports from stages 1, 2 and 3 imported into stage 4 | sessions, logins, receipts (replayed byte for byte), cancelled bookings and imported series all work |
+| Older images against newer stages' tests | fail as expected, so the suite does tell the stages apart |
+
+Every failure while writing the suite was a mistake in a test, fixed by re-reading the spec; no service result
+was excused. Where the spec is silent on 400 versus 422 for a wrongly typed field the suite accepts either.
+This audit is not a substitute for the organisers' hidden checks. It cannot prove them, only that the likely
+ones were tried.

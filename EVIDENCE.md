@@ -34,3 +34,4 @@ Times are UTC. Manila time is UTC+8.
 | Every stage commit hash is posted in the room | audit T7: 25 of 25 |
 | Per-stage time, tokens, dollars | `FACTORY.md` section 6; `handoffs/stage-*-record.md` |
 | Failures disclosed rather than hidden | `FACTORY.md` sections 7 and 9; `handoffs/final-report-stage-4.md` "Open limitations" |
+| Behaviour matches the spec beyond the shipped checks | `operator-audit/README.md` and `operator-audit/results/` (506 passed, 0 failed on stage 4) |
