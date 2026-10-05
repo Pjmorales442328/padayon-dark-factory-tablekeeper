@@ -22,7 +22,7 @@ and the dispatch messages (see "What the human did").
   complexity **9 at every stage**, **0 functions above 10**, largest file 132 lines, 0% duplicated lines
   (291 functions at stage 4). Mean CC 2.64 → 2.81 → 3.15 → 3.12: it rose with the features and was
   pulled back at stage 4 by a reviewer rejection (section 5).
-- Work was shared: of 136 commits, coordinator 43, interface-builder 25, tester 25, core-builder 24,
+- Work was shared: share of tool calls in the room export is interface-builder 24%, tester 21%, reviewer 19%, coordinator 18%, core-builder 17%; of 136 commits, coordinator 43, interface-builder 25, tester 25, core-builder 24,
   reviewer 19; every seat commits under its own name; history is never rewritten.
 
 ## 2. The seats
@@ -103,12 +103,16 @@ workers with no 5xx (max 0.60 s), 76 browser checks at 375 px and 1280 px with a
 
 - **Time:** 4h 49m 17s of factory time across four stages (table in section 1).
 - **Claude seats (tester, reviewer):** 175.9M tokens, **$59.19** at list prices by `band usage rooms`
-  (tester $31.33, reviewer $27.86). Band labels this an estimate, not a bill.
+  (tester $31.33, reviewer $27.86). Band labels this an estimate, not a bill. Band reports one figure per
+  room, so the per-stage split below is our apportionment of that $59.19 by token-weighted usage read from
+  the two seats' transcripts (cache reads 0.1, cache writes 1.25, output 5 relative to fresh input):
+  stage 1 about $6.2, stage 2 $12.7, stage 3 $25.7, stage 4 $12.3, $2.3 outside the stage windows.
+  Stage 3 was the expensive one because the Claude seats' context had grown to about 800k tokens.
 - **Codex seats (coordinator, core-builder, interface-builder):** 199.9M tokens across the four stages
   (+5.7M between stages, +9.1M after the final freeze), about 96% cached. They ran on a flat ChatGPT
   plan, so no per-token invoice exists; tokens are counted from the Codex session logs.
-- Before the final context cap the Claude seats reached ~800k tokens of context each; after the
-  cap it sat at 45-55k. The cap was the biggest cost lever we found.
+- Before the context cap the Claude seats reached ~800k tokens of context each; after compaction
+  it sat at 45-55k. The cap was the biggest cost lever we found.
 
 ## 7. What we tried that failed (and what it cost)
 
